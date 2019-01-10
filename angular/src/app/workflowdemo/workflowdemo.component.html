@@ -1,0 +1,28 @@
+<div class="container">
+    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="space-around center" class="content" fxLayout="column">
+        <mat-card class="card">
+            <mat-card-title fxLayout.gt-xs="row" fxLayout.xs="column">
+                <h3>SignalR and Durable Functions demo</h3>
+            </mat-card-title>
+            <mat-card-content class="my-card-content">
+                {{signalrinfoService.connectioninfo|json}}
+                    <button mat-raised-button color="primary" (click)="signalrclicked()">SignalR</button>
+                    <button mat-raised-button color="primary" (click)="durableFunctionClicked()">Durable function</button>
+            </mat-card-content>
+        </mat-card>
+        <mat-card class="card" *ngFor="let durableFunction of durableFunctions | keyvalue">
+            <mat-card-content>
+                id = {{durableFunction.value.id}}; <br/>
+                message = {{durableFunction.value.message}}
+                <mat-progress-bar mode="determinate" value="{{durableFunction.value.progress}}"></mat-progress-bar>
+            </mat-card-content>
+        </mat-card>
+        <mat-card class="card" *ngFor="let message of messages">
+            <mat-card-content>{{message}}</mat-card-content>
+        </mat-card>
+
+    </div>
+</div>
+ <div>
+
+ </div>

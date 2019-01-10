@@ -1,0 +1,7 @@
+<span *ngIf="!loggedin()">
+    <!-- Login in with your <button mat-button (click)="loginAADClicked()">Office365</button> or
+    <button mat-button (click)="loginMicrosoftClicked()">Microsoft</button> account -->
+    <button mat-button (click)="loginClicked()">Login</button>
+</span>
+<span *ngIf="loggedin()">{{username}}</span>
+<button *ngIf="loggedin()" mat-button (click)="logoutClicked()">Logout</button>

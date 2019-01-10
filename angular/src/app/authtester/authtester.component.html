@@ -1,0 +1,19 @@
+<div class="container">
+    <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="space-around center" class="content" fxLayout="column">
+        <mat-card class="card">
+            <mat-card-title fxLayout.gt-xs="row" fxLayout.xs="column">
+                <h3>Auth tester</h3>
+            </mat-card-title>
+            <mat-card-content class="my-card-content">
+                    <button mat-raised-button color="primary" (click)="refreshToken()">Refresh token</button>
+                    <button mat-raised-button color="primary" (click)="getMeData()">Get Me data</button>
+                    <button mat-raised-button color="primary" (click)="authTesterClicked()">Auth tester</button>
+            </mat-card-content>
+        </mat-card>
+        <mat-card class="card" *ngFor="let token of tokens">
+            <mat-card-content>
+                {{token | json}}
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

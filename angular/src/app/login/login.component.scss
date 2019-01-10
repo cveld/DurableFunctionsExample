@@ -1,0 +1,49 @@
+* {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.signin-button {
+    width: 250px;
+    padding: 5px;
+    margin: 20px auto;
+    background: rgba(255, 255, 255, .15);
+    color: rgba(165, 165, 165, 1);
+    font-weight: 500;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border: 2px solid rgba(165, 165, 165, 1);
+    font-size: 1.2em;
+    transition: 300ms;
+}
+
+.signin-button img {
+    vertical-align: middle;
+    padding-right: 10px;
+}
+
+.signin-button:hover {
+    background: rgba(245, 245, 245, 1);
+    cursor: pointer;
+    transition: 300ms;
+}
+
+.signin-button-text {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+
+#lock {
+    width: 40%;
+    margin: 1.5em auto 4em auto;
+    display: block;
+}
+
+@media (max-width: 600px) {
+    #page {
+        padding: 1em;
+    }
+    #toolbar {
+        width: 90%;
+        margin-left: -45%;
+    }
+}
