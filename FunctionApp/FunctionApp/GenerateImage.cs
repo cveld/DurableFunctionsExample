@@ -15,7 +15,7 @@ namespace FunctionApp
     {
         [FunctionName("GenerateImageFractal")]
         public static HttpResponseMessage GenerateImageFractal(
-        [HttpTrigger(AuthorizationLevel.User, methods: "get")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, methods: "get")]
             HttpRequestMessage req,
         ILogger log)
         {
