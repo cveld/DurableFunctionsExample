@@ -7,6 +7,7 @@
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="1.7.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.0.0-preview1-10025" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24" />
+    <PackageReference Include="SkiaSharp" Version="1.68.0" />
     <PackageReference Include="System.Net.Http.WinHttpHandler" Version="4.5.1" />
   </ItemGroup>
   <ItemGroup>
