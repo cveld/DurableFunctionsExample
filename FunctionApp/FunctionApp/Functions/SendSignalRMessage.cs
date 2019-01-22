@@ -6,6 +6,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -18,6 +19,11 @@ namespace FunctionApp
     {
         static HttpClient httpClient = new HttpClient();
 
+        /// <summary>
+        /// Code for mimicing EasyAuth http header x-ms-client-principal-name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private static string TransformPrincipalNameToSignalRUserId(string name)
         {
             // For AAD:
@@ -37,6 +43,23 @@ namespace FunctionApp
             //return name;
         }
 
+        /// <summary>
+        /// Code for mimicing EasyAuth http header x-ms-client-principal-id
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        private static string TransformPrincipalIdToSignalRUserId(ClaimsPrincipal claimsPrincipal)
+        {
+            // For AAD it seems to get fetched from the following claim:
+            var userid = claimsPrincipal.Claims.Where(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").FirstOrDefault();
+            if (userid == null)
+            {
+                // for microsoftaccount flows it seems to get fetched from the following claim:
+                userid = claimsPrincipal.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier /* "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier" */).FirstOrDefault();
+            }
+            return userid?.Value;
+        }
+
         [FunctionName("SendSignalRMessage")]
         public static IActionResult Run(
             [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequest req,
@@ -49,14 +72,16 @@ namespace FunctionApp
                 Arguments = new[] { "Broadcast" }
             });
 
-            var strippedUserId = TransformPrincipalNameToSignalRUserId(claimsPrincipal.Identity.Name);
-            if (!string.IsNullOrEmpty(strippedUserId))
+            //var userid = TransformPrincipalNameToSignalRUserId(claimsPrincipal.Identity.Name);
+            // 
+            var userid = TransformPrincipalIdToSignalRUserId(claimsPrincipal);
+            if (!string.IsNullOrEmpty(userid))            
             {
                 signalRMessages.AddAsync(new SignalRMessage
                 {
                     Target = "carlintveldEvent",
-                    UserId = strippedUserId,
-                    Arguments = new[] { $"Message to UserId: {strippedUserId} { (strippedUserId != claimsPrincipal.Identity.Name ? $" (original principal name: {claimsPrincipal.Identity.Name})" : String.Empty)}" }
+                    UserId = userid,
+                    Arguments = new[] { $"Message to UserId: {userid}" } // { (userid != claimsPrincipal.Identity.Name ? $" (original principal name: {claimsPrincipal.Identity.Name})" : String.Empty) }" 
                 });
             }
 

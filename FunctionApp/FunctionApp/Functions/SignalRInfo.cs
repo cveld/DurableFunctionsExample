@@ -24,10 +24,10 @@ namespace FunctionApp1
         [FunctionName("SignalRInfoAuthenticated")]
         public static IActionResult SignalRInfoAuthenticated(
             [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequest req,
-            [SignalRConnectionInfo(HubName = "carlintveld", UserId = "{headers.x-ms-client-principal-name}")] SignalRConnectionInfo connectionInfo,
+            [SignalRConnectionInfo(HubName = "carlintveld", UserId = "{headers.x-ms-client-principal-id}")] SignalRConnectionInfo connectionInfo,
             ILogger log)
         {
-            // microsoftaccount and aad userids are equal to the user's e-mail address 
+            // for aad both regular as well as live-id guest accounts the http header x-ms-client-principal-name is equal to the user's e-mail address 
             return new OkObjectResult(connectionInfo);
         }
     }

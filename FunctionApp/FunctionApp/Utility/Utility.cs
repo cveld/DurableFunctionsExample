@@ -12,7 +12,7 @@ namespace FunctionApp
         {
             if (claimsPrincipal.Identity.IsAuthenticated)
             {
-                var username = claimsPrincipal.Claims.Where(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name").FirstOrDefault();
+                var username = claimsPrincipal.Claims.Where(c => c.Type == ClaimTypes.Name /* "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name" */).FirstOrDefault();
                 return username != null ? username.Value : "admin";
             }
 
