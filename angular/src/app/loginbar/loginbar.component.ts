@@ -35,7 +35,11 @@ export class LoginbarComponent implements OnInit {
             this.username = sessionStorage.getItem('username');
             if (!this.username) {
                 this.easyAuthService.getMeData().then(data => {
-                    this.username = data[0].user_claims.find(a => a.typ === 'name').val;
+                    let findName = data[0].user_claims.find(a => a.typ === 'name');
+                    if (!findName) {
+                        findName = data[0].user_claims.find(a => a.typ === 'urn:microsoftaccount:name');
+                    }
+                    this.username = !!findName ? findName.val : '';
                     sessionStorage.setItem('username', this.username);
                 });
             }

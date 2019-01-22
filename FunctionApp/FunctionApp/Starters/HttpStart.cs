@@ -2,15 +2,17 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using FunctionApp.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
-namespace FunctionApp1
+namespace FunctionApp
 {
     public static class HttpStart
     {
@@ -23,14 +25,19 @@ namespace FunctionApp1
         {
             // Function input comes from the request content.
             dynamic eventData = await req.Content.ReadAsAsync<object>();
-            string instanceId = await starter.StartNewAsync(functionName, eventData);
+            var dto = new OrchestratorDto
+            {
+                User = Utility.GetUserName(claimsPrincipal),
+                EventData = eventData
+            };
+            string instanceId = await starter.StartNewAsync(functionName, dto);
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
             var res = starter.CreateCheckStatusResponse(req, instanceId);
             res.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(10));
             return res;
-        }
+        }        
     }
 }
 

@@ -5,9 +5,21 @@
                 <h3>SignalR and Durable Functions demo</h3>
             </mat-card-title>
             <mat-card-content class="my-card-content">
-                {{signalrinfoService.connectioninfo|json}}
+                <mat-slide-toggle
+                    class="toggle-margin"
+                    color="primary"
+                    (change)="onSlideToggleChange($event)"
+                    [checked]="showConfiginfo">
+                    Show config info
+                </mat-slide-toggle>
+
                     <button mat-raised-button color="primary" (click)="signalrclicked()">SignalR</button>
                     <button mat-raised-button color="primary" (click)="durableFunctionClicked()">Durable function</button>
+            </mat-card-content>
+        </mat-card>
+        <mat-card class="card" *ngIf="showConfiginfo">
+            <mat-card-content>
+                    {{signalrinfoService.connectioninfo|json}}
             </mat-card-content>
         </mat-card>
         <mat-card class="card" *ngFor="let durableFunction of durableFunctions | keyvalue">

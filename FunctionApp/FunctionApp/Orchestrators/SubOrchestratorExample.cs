@@ -15,7 +15,7 @@ namespace FunctionApp
         {
             var input = context.GetInput<string>();
             var result = await context.CallActivityAsync<string>("E1_SayHello", input);
-            await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDTO { id = context.InstanceId, message = input, progress = 20 });
+            await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDto { id = context.InstanceId, message = input, progress = 20 });
             return result;
         }
     }

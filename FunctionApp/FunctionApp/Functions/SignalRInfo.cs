@@ -12,12 +12,22 @@ namespace FunctionApp1
 {
     public static class SignalRInfo
     {
-        [FunctionName("SignalRInfo")]
-        public static IActionResult Run(
+        [FunctionName("SignalRInfoAnonymous")]
+        public static IActionResult SignalRInfoAnonymous(
             [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequest req,
             [SignalRConnectionInfo(HubName = "carlintveld")] SignalRConnectionInfo connectionInfo,
             ILogger log)
+        {            
+            return new OkObjectResult(connectionInfo);
+        }
+
+        [FunctionName("SignalRInfoAuthenticated")]
+        public static IActionResult SignalRInfoAuthenticated(
+            [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequest req,
+            [SignalRConnectionInfo(HubName = "carlintveld", UserId = "{headers.x-ms-client-principal-name}")] SignalRConnectionInfo connectionInfo,
+            ILogger log)
         {
+            // microsoftaccount and aad userids are equal to the user's e-mail address 
             return new OkObjectResult(connectionInfo);
         }
     }

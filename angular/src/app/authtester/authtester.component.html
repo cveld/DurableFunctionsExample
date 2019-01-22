@@ -5,9 +5,23 @@
                 <h3>Auth tester</h3>
             </mat-card-title>
             <mat-card-content class="my-card-content">
-                    <button mat-raised-button color="primary" (click)="refreshToken()">Refresh token</button>
-                    <button mat-raised-button color="primary" (click)="getMeData()">Get Me data</button>
-                    <button mat-raised-button color="primary" (click)="authTesterClicked()">Auth tester</button>
+
+                    <mat-slide-toggle
+                        class="toggle-margin"
+                        color="primary"
+                        (change)="onSlideToggleChange($event)"
+                        [checked]="showTokens">
+                        Show token
+                    </mat-slide-toggle>
+
+                <button mat-raised-button color="primary" (click)="refreshToken()">Refresh token</button>
+                <button mat-raised-button color="primary" (click)="getMeData()">Get Me data</button>
+                <button mat-raised-button color="primary" (click)="authTesterClicked()">Auth tester</button>
+            </mat-card-content>
+        </mat-card>
+        <mat-card class="card" *ngIf="showTokens">
+            <mat-card-content>
+                {{easyAuth.authToken}}
             </mat-card-content>
         </mat-card>
         <mat-card class="card" *ngFor="let token of tokens">

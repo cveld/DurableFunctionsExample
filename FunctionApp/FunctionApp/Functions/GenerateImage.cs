@@ -22,7 +22,7 @@ namespace FunctionApp
             FractalInit initdata = new FractalInit
             {
                 height = 800,
-                maxIterations = 100,
+                maxIterations = 128,
                 width = 800,
                 xMax = 1,
                 xMin = -3,

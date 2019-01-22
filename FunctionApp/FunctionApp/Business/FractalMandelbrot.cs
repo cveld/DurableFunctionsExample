@@ -76,16 +76,118 @@ namespace FunctionApp
             return 4 * (y * this.width + x);
         }
 
-        int iterate(double t, double e, double n, double i, int r)
+        (int, int) iterate2(double t, double e, double n, double i, int maxiterations)
         {
-            for (var o = 0; ;)
+            double r1 = 0;
+            double i1 = 0;
+            var y1 = i;
+            var x1 = n;
+            double r1pow2;
+            double i1pow2;
+            double rlastpow = 0;
+
+            var iterations = maxiterations;
+            var iter = 0;
+            double rpow = 0;
+            while ((iter < iterations) && (rpow < 4))
             {
-                if (++o > r) return 0;
+                r1pow2 = r1 * r1;
+                i1pow2 = i1 * i1;
+                i1 = 2 * i1 * r1 + y1;
+                r1 = r1pow2 - i1pow2 + x1;
+                rlastpow = rpow;
+                rpow = r1pow2 + i1pow2;
+                iter++;
+            }
+
+            //if (RenderInterpolated == 1)
+            //{
+            double count_f = iter + (4 - rlastpow) / (rpow - rlastpow) - 1;
+            int factor = (int)((1.0 - (iter - count_f)) * 255);
+            if (factor > 255)
+            {                
+                factor = 255;
+            }
+            return (iter, factor);
+                //dst[idx++] = Utils.InterpolateColors(Palette[iter - 1], Palette[iter], factor);
+            //}
+            //else
+            //{
+            //    iter = iter % Palette.Length;
+            //    dst[idx++] = Palette[iter];
+            //}
+        }
+
+        int iterate(double t, double e, double n, double i, int maxiterations)
+        {
+            for (var iteration = 0; ;)
+            {
+                if (++iteration > maxiterations) return 0;
                 var s = 2 * e * t + i;
-                if (t > 4 || e > 4) return o;
+                if (t > 4 || e > 4) return iteration;
                 t = t * t - e * e + n;
                 e = s;
             }
+        }
+
+        private Color InterpolateColors(int s1, int s2, int maxiterations, int weight)
+        {
+            if (s1 == -1)
+            {
+                Console.WriteLine("overflow");
+            }
+            Color c1 = getColor(s1, maxiterations);
+            Color c2 = getColor(s2, maxiterations);
+
+            if (c2.r == 0 && c2.g == 0 && c2.b == 0)
+            {
+
+            }
+
+            if (weight >= 255 )
+            {
+                //Console.WriteLine("overflow");
+            }
+
+            if (weight < 0)
+            {
+                weight = 0;
+            }
+
+            int redi = (int)c1.r + ((int)((c2.r - c1.r) * weight) >> 8);
+            int greeni = (int)c1.g + ((int)((c2.g - c1.g) * weight) >> 8);
+            int bluei = (int)c1.b + ((int)((c2.b - c1.b) * weight) >> 8);
+
+            byte red = ToByte(redi);
+            byte green = ToByte(greeni); 
+            byte blue = ToByte(bluei);
+
+            if (red == 0 && green == 0 && blue == 0)
+            {
+
+            }
+
+            return new Color
+            {
+                r = red,
+                g = green,
+                b = blue,
+                a = 255
+            };
+        }
+
+        byte ToByte(int i)
+        {
+            if (i > 255)
+            {
+                return 255;
+            }
+            if (i < 0)
+            {
+                return 0;
+            }
+
+            return (byte)i;
         }
 
         public byte[] compute()
@@ -96,29 +198,37 @@ namespace FunctionApp
             for (var t = 0; t < this.width; t++)
                 for (var e = 0; e < this.height; e++)
                 {
-                    var n = this.iterate(0, 0, t * this.xScale + this.xMin, e * this.yScale + this.yMin, this.maxIterations);
-                    if (n == this.maxIterations)
-                    {
-                        this.updatePixel(this.coord2Index(t, e), 0, 0, 0);
-                    }
-                    else
-                    {
-                        Color c = this.getColor(n, this.maxIterations);
-                        this.updatePixel(this.coord2Index(t, e), c.r, c.g, c.b);
-                    }
+                    //var n = this.iterate(0, 0, t * this.xScale + this.xMin, e * this.yScale + this.yMin, this.maxIterations);
+                    (var n, var factor) = this.iterate2(0, 0, t * this.xScale + this.xMin, e * this.yScale + this.yMin, this.maxIterations);
+
+                    // Color c = this.getColor(n, this.maxIterations);
+                    Color c = this.InterpolateColors(n-1, n, maxIterations, factor);
+                        
+                    this.updatePixel(this.coord2Index(t, e), c.r, c.g, c.b);
+                    
                 }
             //return new ImageData(Uint8ClampedArray.from(this.pixels),this.width,this.height);
             //return Uint8ClampedArray.from(this.pixels);
             return this.pixels;
         }
         Color getColor(int iteration, double maxiterations)
-        {   // t,e
+        {
+            if (iteration >= maxIterations)
+            {
+                iteration = maxIterations;
+                //return new Color
+                //{
+                //    r = 255,
+                //    g = 255,
+                //    b = 0,
+                //    a = 255
+                //};
+            }
+            // t,e
             //int top = (int)Math.Floor(maxiterations);
             //iteration = rnd.Next() % top;
             double n = iteration / maxiterations;
-            double r = 0;  // (i, r, o)
-            double g = 0;
-            double b = 0;
+            
             //return Color.FromDouble(n / .125 * 512 + .5, 0, 0);
             if (n >= 0 && n < .125)
             {

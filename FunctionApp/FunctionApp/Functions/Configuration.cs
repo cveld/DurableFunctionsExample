@@ -20,8 +20,9 @@ namespace FunctionApp1
             return new JsonResult(
                 new
                 {
-                    FunctionsApp = System.Environment.GetEnvironmentVariable("FunctionsApp", EnvironmentVariableTarget.Process)
-        }
+                    FunctionsApp = System.Environment.GetEnvironmentVariable("FunctionsApp", EnvironmentVariableTarget.Process),
+                    FunctionsAppCode = System.Environment.GetEnvironmentVariable("FunctionsAppCode", EnvironmentVariableTarget.Process)
+                }
             );
         }
     }

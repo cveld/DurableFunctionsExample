@@ -19,7 +19,7 @@ namespace FunctionApp1
 
         [FunctionName("SendSignalRMessageActivity")]
         public static void Run(
-            [ActivityTrigger]SignalRDTO input,
+            [ActivityTrigger]SignalRDto input,
             //[CosmosDBTrigger("demo", "flights", ConnectionStringSetting = "AzureWebJobsCosmosDBConnectionString")]              
             [SignalR(HubName = "carlintveld")] IAsyncCollector<SignalRMessage> signalRMessages)
         {

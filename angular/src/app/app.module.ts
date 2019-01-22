@@ -66,7 +66,7 @@ import { LoginComponent } from './login/login.component';
     HttpClientModule,
     BrowserAnimationsModule,
     MatButtonModule, MatCheckboxModule, MatToolbarModule, MatIconModule, MatListModule, MatProgressBarModule,
-    MatSidenavModule, MatCardModule,
+    MatSidenavModule, MatCardModule, MatSlideToggleModule,
     FlexLayoutModule,
     ConfigurationModule,
     // EasyAuthModule

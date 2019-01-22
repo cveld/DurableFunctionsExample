@@ -15,22 +15,26 @@ export class TokenService {
     constructor() { }
 
     getTokenExpirationDate(token: string): Date {
-        const decoded = jwtDecode<TokenDto>(token);
+        try {
+            const decoded = jwtDecode<TokenDto>(token);
+            if (decoded.exp === undefined) {
+                return null;
+            }
 
-        if (decoded.exp === undefined) {
+            const date = new Date(0);
+            date.setUTCSeconds(decoded.exp);
+            return date;
+        } catch (e) {
             return null;
         }
-
-        const date = new Date(0);
-        date.setUTCSeconds(decoded.exp);
-        return date;
     }
 
     isTokenExpired(token?: string): boolean {
         if (!token) { return true; }
 
         const date = this.getTokenExpirationDate(token);
-        if (date === undefined) { return false; }
+        // if there is no date object, assume it to be expired:
+        if (!date) { return true; }
         return !(date.valueOf() > new Date().valueOf());
     }
 

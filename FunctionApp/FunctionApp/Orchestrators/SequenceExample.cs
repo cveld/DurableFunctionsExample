@@ -11,7 +11,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 
 namespace FunctionApp1
 {
-    public static class HelloSequence
+    public static class SequenceExample
     {
         [FunctionName("E1_HelloSequence")]
         public static async Task<List<string>> Run(
@@ -21,12 +21,12 @@ namespace FunctionApp1
             //context.GetInput();
             await context.CallActivityAsync("SignalRAddUserToGroup", null);
             outputs.Add(await context.CallActivityAsync<string>("E1_SayHello", "Tokyo"));
-            await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDTO { id = context.InstanceId, message = "Tokyo", progress = 20 });        
+            await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDto { id = context.InstanceId, message = "Tokyo", progress = 20 });        
             outputs.Add(await context.CallActivityAsync<string>("E1_SayHello", "Seattle"));
             outputs.Add(await context.CallActivityAsync<string>("E1_SayHello", "London"));
 
             // returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
-            await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDTO { id = context.InstanceId, message = $"Result: {String.Join(" ", outputs)}", progress = 100 });
+            await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDto { id = context.InstanceId, message = $"Result: {String.Join(" ", outputs)}", progress = 100 });
             return outputs;
         }
 

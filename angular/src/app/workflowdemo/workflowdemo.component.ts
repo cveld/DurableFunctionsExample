@@ -3,6 +3,7 @@ import { SignalrinfoService, EasyAuthService } from '../shared';
 import { Subscription } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
+import { MatSlideToggleChange } from '@angular/material';
 
 @Component({
   selector: 'app-workflowdemo',
@@ -14,6 +15,7 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
     private subscriptions: Array<Subscription> = new Array<Subscription>();
     messages: Array<string> = new Array<string>();
     durableFunctions: Map<string, any> = new Map<string, any>();
+    showConfiginfo = false;
 
     constructor(
         private configurationService: ConfigurationService,
@@ -42,7 +44,19 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
     }
     signalrclicked() {
         const apiBaseUrl = this.configurationService.getValue('functionsApp');
-        this.http.get<any>(`${apiBaseUrl}/api/SendSignalRMessage`).subscribe(data => {
+        const code = this.configurationService.getValue('functionsAppCode');
+
+        this.easyAuth.getAuthToken(true, false).then(token => {
+            let options;
+            if (!!token) {
+                const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'X-ZUMO-AUTH': token
+                });
+                options = { headers: headers };
+            }
+            this.http.get<any>(`${apiBaseUrl}/api/SendSignalRMessage?code=${code}`, options).subscribe(data => {
+            });
         });
     }
 
@@ -60,4 +74,9 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
             });
         });
     }
+
+    onSlideToggleChange($event: MatSlideToggleChange) {
+        this.showConfiginfo = $event.checked;
+    }
+
 }

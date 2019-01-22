@@ -22,8 +22,7 @@ export class EasyAuthService {
     ) {
         try {
             this.apiBaseUrl = this.configurationService.getValue('functionsApp');
-        }
-        catch (e) {
+        } catch (e) {
             console.error(e);
         }
 
@@ -50,7 +49,7 @@ export class EasyAuthService {
         return !!this.authToken && !this.tokenService.isTokenExpired(this.authToken);
     }
 
-    getAuthToken(checkExpired: boolean = true): Promise<string> {
+    getAuthToken(checkExpired: boolean = true, redirectToLogin: boolean = true): Promise<string> {
         if (!this.authToken) {
             this.authToken = sessionStorage.getItem('authToken');
         }
@@ -58,12 +57,23 @@ export class EasyAuthService {
             if (!checkExpired || !this.tokenService.isTokenExpired(this.authToken)) {
                 return Promise.resolve(this.authToken);
             }
-            return this.refreshToken();
+            return this.refreshToken().catch((reason) => {
+                console.log('Refresh token failed: ', reason);
+                return this.getAuthTokenContinuation(redirectToLogin);
+            });
         }
 
-        return new Promise<string>((resolve, reject) => {
-            this.router.navigateByUrl('/login');
-        });
+        return this.getAuthTokenContinuation(redirectToLogin);
+    }
+
+    private getAuthTokenContinuation(redirectToLogin: boolean): Promise<string> {
+        if (redirectToLogin) {
+            return new Promise<string>((resolve, reject) => {
+                this.router.navigateByUrl('/login');
+            });
+        }
+
+        return Promise.resolve(null);
     }
 
     removeToken(): any {

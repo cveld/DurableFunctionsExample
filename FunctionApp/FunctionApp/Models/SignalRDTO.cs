@@ -4,7 +4,7 @@ using System.Text;
 
 namespace FunctionApp1
 {
-    public class SignalRDTO
+    public class SignalRDto
     {
         public string id;
         public string message;

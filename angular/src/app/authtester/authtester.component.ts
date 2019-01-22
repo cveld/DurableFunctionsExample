@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { EasyAuthService } from '../shared';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
+import { MatSlideToggleChange } from '@angular/material';
 
 @Component({
   selector: 'app-authtester',
@@ -11,12 +12,17 @@ import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
 export class AuthtesterComponent implements OnInit {
     tokens: Array<any> = new Array<any>();
     baseurl: string;
+    showTokens = false;
 
     constructor(
-        private easyAuth: EasyAuthService,
+        public easyAuth: EasyAuthService,
         private http: HttpClient,
         private configuration: ConfigurationService
     ) { }
+
+    onSlideToggleChange($event: MatSlideToggleChange) {
+        this.showTokens = $event.checked;
+    }
 
     ngOnInit() {
         this.baseurl = this.configuration.getValue('functionsApp');
@@ -38,10 +44,14 @@ export class AuthtesterComponent implements OnInit {
         this.easyAuth.getAuthToken().then(token => {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
-                // 'X-ZUMO-AUTH': token
-                'Authorization': `Bearer ${token}`
+                // EasyAuth uses a proprietary token header:
+                'X-ZUMO-AUTH': token
+                // the oauth way is not the way EasyAuth works. Therefore the following will give you access denied:
+                // 'Authorization': `Bearer ${token}`
             });
-            this.http.get(`${this.baseurl}/api/ClaimsPrincipalTest?code=X3LfEnLHBd9ozNPGNtlA6vcDNFDU3ODMzqAqJ2XMBKQU2BYvuYssuw==`, { headers: headers }).toPromise().then(data => {
+            const code = this.configuration.getValue('functionsAppCode');
+            // tslint:disable-next-line:max-line-length
+            this.http.get(`${this.baseurl}/api/ClaimsPrincipalTestInjectedAnonymous?code=${code}`, { headers: headers }).toPromise().then(data => {
                 this.tokens.push(data);
             });
         });

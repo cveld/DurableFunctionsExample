@@ -4,8 +4,9 @@ import { shareReplay, map, tap } from 'rxjs/operators';
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
 import { ConfigurationService } from '../../lib/Uwv.eDv.Angular.Configuration';
 import * as jwtDecode from 'jwt-decode';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { TokenService } from '../token/token.service';
+import { EasyAuthService } from '../easy-auth/easy-auth.service';
 
 @Injectable({
 providedIn: 'root'
@@ -23,7 +24,8 @@ export class SignalrinfoService implements OnDestroy {
     constructor(
         private http: HttpClient,
         private configurationService: ConfigurationService,
-        private tokenService: TokenService
+        private tokenService: TokenService,
+        private easyAuth: EasyAuthService
         ) {
         this.carlintveld$ = new Subject<any>();
         this.durable$ = new Subject<any>();
@@ -31,11 +33,26 @@ export class SignalrinfoService implements OnDestroy {
         this.initializeHub();
     }
 
-    getConnectionInfo() {
-        const result = this.http.get<any>(`${this.apiBaseUrl}/api/SignalRInfo`).pipe(tap(data => {
-        this.connectioninfo = data;
-        }));
-        return result;
+    getConnectionInfo(): Promise<{accessToken}> {
+        return this.easyAuth.getAuthToken(true, false).then(token => {
+            let options: { headers };
+            let mode = 'Anonymous';
+            if (!!token) {
+                const headers = new HttpHeaders({
+                'Content-Type': 'application/json',
+                'X-ZUMO-AUTH': token
+                });
+                options = { headers: headers };
+                mode = 'Authenticated';
+            }
+            const code = this.configurationService.getValue('functionsAppCode');
+            const promise = this.http.get<any>(`${this.apiBaseUrl}/api/SignalRInfo${mode}?code=${code}`, options)
+                .toPromise().then((data) => {
+                this.connectioninfo = data;
+                return data;
+            });
+            return promise;
+        });
     }
 
     getConnectionInfoold() {
@@ -49,7 +66,7 @@ export class SignalrinfoService implements OnDestroy {
     }
 
     initializeHub() {
-        this.subscriptions.push(this.getConnectionInfo().subscribe(data => this.setupStream(data)));
+        this.getConnectionInfo().then(data => this.setupStream(data));
     }
 
     private setupStream(data: any) {
@@ -62,7 +79,7 @@ export class SignalrinfoService implements OnDestroy {
                     // accessToken = null;
                     return _accessToken;
                 }
-                return this.getConnectionInfo().toPromise().then(data1 => {
+                return this.getConnectionInfo().then(data1 => {
                     return data1.accessToken;
                 });
             }
