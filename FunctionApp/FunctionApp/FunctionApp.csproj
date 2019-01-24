@@ -4,6 +4,14 @@
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Data\data.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Data\data.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="1.7.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.0.0-preview1-10025" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24" />

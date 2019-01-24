@@ -90,6 +90,7 @@ export class SignalrinfoService implements OnDestroy {
     connection.on('carlintveldEvent', (...params) => this.carlintveldEvent(...params));
     connection.on('durableEvent', (...params) => this.durableEvent(...params));
     connection.onclose(() => {
+        // after a disconnect signalr backend drops the groups context for the connection. We need to readd user to signalr groups
         console.log('disconnected');
         setTimeout(() => { this.startConnection(connection); }, this.getNewWaitTime());
     });

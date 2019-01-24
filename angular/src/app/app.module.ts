@@ -6,7 +6,9 @@ import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { ConfigurationModule } from './lib/Uwv.eDv.Angular.Configuration/index';
+import { ConfigurationModule, ConfigurationService } from './lib/Uwv.eDv.Angular.Configuration';
+import { MapModule, MapAPILoader, BingMapAPILoaderConfig, BingMapAPILoader, WindowRef, DocumentRef,
+        MapServiceFactory, BingMapServiceFactory } from 'angular-maps';
 import {
   MatAutocompleteModule,
   MatBadgeModule,
@@ -50,6 +52,7 @@ import { LoginbarComponent } from './loginbar/loginbar.component';
 import { EasyAuthModule } from './shared/easy-auth/easy-auth.module';
 import { AuthtesterComponent } from './authtester/authtester.component';
 import { LoginComponent } from './login/login.component';
+import { FlightsComponent } from './flights/flights.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +61,8 @@ import { LoginComponent } from './login/login.component';
     WorkflowdemoComponent,
     LoginbarComponent,
     AuthtesterComponent,
-    LoginComponent
+    LoginComponent,
+    FlightsComponent
   ],
   imports: [
     BrowserModule,
@@ -69,9 +73,25 @@ import { LoginComponent } from './login/login.component';
     MatSidenavModule, MatCardModule, MatSlideToggleModule,
     FlexLayoutModule,
     ConfigurationModule,
+    MapModule.forRoot()
     // EasyAuthModule
   ],
-  providers: [],
+  providers: [
+      {
+        provide: MapAPILoader, deps: [ConfigurationService], useFactory: MapServiceProviderFactory
+      }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+
+// Example taken from https://stackblitz.com/edit/bing-map-with-canvas-marker
+export function MapServiceProviderFactory(configurationService: ConfigurationService) {
+    const bc: BingMapAPILoaderConfig = new BingMapAPILoaderConfig();
+    bc.apiKey = configurationService.getValue('bingApiKey'); // your bing map key
+    // bc.branch = "experimental";
+        // to use the experimental bing branch. There are some bug fixes for
+        // clustering in that branch you will need if you want to use
+        // clustering.
+    return new BingMapAPILoader(bc, new WindowRef(), new DocumentRef());
+}

@@ -21,7 +21,8 @@ namespace FunctionApp1
                 new
                 {
                     FunctionsApp = System.Environment.GetEnvironmentVariable("FunctionsApp", EnvironmentVariableTarget.Process),
-                    FunctionsAppCode = System.Environment.GetEnvironmentVariable("FunctionsAppCode", EnvironmentVariableTarget.Process)
+                    FunctionsAppCode = System.Environment.GetEnvironmentVariable("FunctionsAppCode", EnvironmentVariableTarget.Process),
+                    BingApiKey = System.Environment.GetEnvironmentVariable("BingApiKey", EnvironmentVariableTarget.Process),
                 }
             );
         }

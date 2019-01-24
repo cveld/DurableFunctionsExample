@@ -1,0 +1,26 @@
+<div class="full-screen-outer">
+    <x-map #xmap [Options]="_options" [Box]="_box" class="full-height">
+        <x-map-marker *ngFor="let m of _markers; let i=index" [Latitude]="m.latitude" [Longitude]="m.longitude" [Title]="'My Marker ' + i.toString()" [IconInfo]="_iconInfo">
+            <x-info-box [DisableAutoPan]="true" [Title]="'My InfoBox ' + i.toString()" [Description]="'Hi, this is the content of the <strong>info window</strong>. It is your responsibility to implement functionality such as close, etc...'">
+                <x-info-box-action [Label]="'Click Me'" (ActionClicked)="_click(i)"></x-info-box-action>
+            </x-info-box>
+        </x-map-marker>
+        <x-map-marker
+            [Latitude]="30"
+            [Longitude]="90"
+            [Title]="'My Marker'"
+            [IconUrl]="'https://cdn0.iconfinder.com/data/icons/industrial-icons/164/2-128.png'"
+            [IconInfo]="{
+                markerType: _markerTypeId.FontMarker,
+                fontName: 'FontAwesome',
+                fontSize: 48,
+                color: 'green',
+                markerOffsetRatio: { x: 0.5, y: 1 },
+                text: '\uF276'
+            }">
+            <x-info-box [DisableAutoPan]="true" [Title]="'My InfoBox'" [Description]="'Hi, this is the content of the <strong>info window</strong>. It is your responsibility to implement functionality such as close, etc...'">
+                <x-info-box-action [Label]="'Click Me'" (ActionClicked)="_click()"></x-info-box-action>
+            </x-info-box>
+        </x-map-marker>
+    </x-map>
+</div>

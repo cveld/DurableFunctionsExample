@@ -2,10 +2,12 @@
     "IsEncrypted": false,
     "Values": {
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-        "AzureSignalRConnectionString": "",
+        "AzureSignalRConnectionString": "<your Azure SignalR Service Connectionstring",
+        "FunctionsAppCode": "<your functions authorization code>",
+        "BingApiKey": "<your Bing Api Key>",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         // Cloud:
-        // "FunctionsApp": "",
+        // "FunctionsApp": "https://<yourfunctionsapp>.azurewebsites.net",
         // Local:
         "FunctionsApp": "http://localhost:7071"
     },
