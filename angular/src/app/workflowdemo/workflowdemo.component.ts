@@ -33,6 +33,9 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
   }
 
     handleDurable(data) {
+        if (!this.durableFunctions.get(data[0].id)) {
+            this.durableFunctions.set(data[0].id, { id : data[0].id });
+        }
         this.durableFunctions.get(data[0].id).message = data[0].message;
         this.durableFunctions.get(data[0].id).progress = data[0].progress;
     }
