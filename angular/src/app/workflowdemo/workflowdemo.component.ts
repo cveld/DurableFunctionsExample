@@ -24,13 +24,13 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
         private easyAuth: EasyAuthService
     ) { }
 
-  ngOnInit() {
-    this.connectionInfo$ = this.signalrinfoService.connectioninfo;
-    this.subscriptions.push(this.signalrinfoService.carlintveld$.subscribe(data => {
-        this.messages.push(`Incoming: ${data}`);
-    }));
-    this.subscriptions.push(this.signalrinfoService.durable$.subscribe((...data) => this.handleDurable(...data)));
-  }
+    ngOnInit() {
+        this.connectionInfo$ = this.signalrinfoService.connectioninfo;
+        this.subscriptions.push(this.signalrinfoService.carlintveld$.subscribe(data => {
+            this.messages.push(`Incoming: ${data}`);
+        }));
+        this.subscriptions.push(this.signalrinfoService.durable$.subscribe((...data) => this.handleDurable(...data)));
+    }
 
     handleDurable(data) {
         if (!this.durableFunctions.get(data[0].id)) {

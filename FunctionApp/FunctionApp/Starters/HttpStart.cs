@@ -11,6 +11,7 @@ using FunctionApp.Models;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace FunctionApp
 {
@@ -23,8 +24,14 @@ namespace FunctionApp
             string functionName,
             ILogger log, ClaimsPrincipal claimsPrincipal)
         {
+            dynamic stuff = JsonConvert.DeserializeObject("{ 'Name': 'Jon Smith', 'Address': { 'City': 'New York', 'State': 'NY' }, 'Age': 42 }");
+
+            string name = stuff.Name;
+            string address = stuff.Address.City;
+
             // Function input comes from the request content.
-            dynamic eventData = await req.Content.ReadAsAsync<object>();
+            var str = await req.Content.ReadAsStringAsync();
+            dynamic eventData = JsonConvert.DeserializeObject(str); // await req.Content.ReadAsAsync<object>();
             var dto = new OrchestratorDto
             {
                 User = Utility.GetUserName(claimsPrincipal),

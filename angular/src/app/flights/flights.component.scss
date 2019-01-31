@@ -8,3 +8,14 @@
 .full-height {
     height: 100%;
 }
+
+.floating {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    z-index: 1;
+
+    button {
+        margin-right: 10px;
+    }
+}

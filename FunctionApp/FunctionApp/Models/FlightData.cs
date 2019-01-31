@@ -7,7 +7,7 @@ namespace FunctionApp.Models
     public class FlightData
     {
         public string Lat { get; set; }
-        public string lon { get; set; }
+        public string Lon { get; set; }
         public bool onground { get; set; }
         public long time { get; set; }
         public string heading { get; set; }

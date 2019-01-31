@@ -53,6 +53,8 @@ import { EasyAuthModule } from './shared/easy-auth/easy-auth.module';
 import { AuthtesterComponent } from './authtester/authtester.component';
 import { LoginComponent } from './login/login.component';
 import { FlightsComponent } from './flights/flights.component';
+import { MyMapLayerDirective } from './my-map-layer/my-map-layer.component';
+import { MyCanvasLayerDirective } from './my-map-layer/my-canvas-layer';
 
 @NgModule({
   declarations: [
@@ -62,7 +64,9 @@ import { FlightsComponent } from './flights/flights.component';
     LoginbarComponent,
     AuthtesterComponent,
     LoginComponent,
-    FlightsComponent
+    FlightsComponent,
+    MyMapLayerDirective,
+    MyCanvasLayerDirective
   ],
   imports: [
     BrowserModule,
