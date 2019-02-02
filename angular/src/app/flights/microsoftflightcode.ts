@@ -6,24 +6,39 @@ export class FlightManager {
     isInit = false;
     speedup: number;
     updateDuration: number;
-    aircraftDict: Map<string, {
+    aircraftDict: {[index: string]: {
         obj: fabric.Image,
-        loc: any}>;
+        loc: any }
+    } = {};
+    sessionCounter = 0;
 
     constructor(private _fabric: fabric.Canvas, private _mapService: MapService) {
+        this.testLongLat();
+    }
+
+    async testLongLat() {
+        await this.addAircrafts([
+            {
+                icao: '1',
+                lat: 52.092876,
+                long: 5.104480
+            }
+        ], -1);
+        this._fabric.renderAll();
     }
 
     //
-    flightDataReceived(duration, aircrafts, ind, serverTimestamp, timestamp: number) {
+    flightDataReceived(duration, aircrafts: Array<any>, ind, serverTimestamp, timestamp: number) {
+        const thisSession = this.sessionCounter++;
         this.speedup = (timestamp - this.curTimestamp) / duration;
         this.curTimestamp = timestamp;
         this.updateDuration = duration;
 
         if (!this.isInit) {
-            this.initAircrafts(aircrafts);
+            this.initAircrafts(aircrafts, thisSession);
             this.isInit = true;
         } else {
-            this.updateAircrafts(aircrafts);
+            this.updateAircrafts(aircrafts, thisSession);
         }
     }
 
@@ -32,46 +47,50 @@ export class FlightManager {
 // }
 
 
-    addAircrafts(aircraftList) {
-        fabric.Image.fromURL('assets/plane-white.png', (img) => {
-            const addedAircrafts = aircraftList.filter(a => !(a.icao in this.aircraftDict)).forEach(a => {
-                const icao = a.icao;
-                const loc = new Microsoft.Maps.Location(a.lat, a.long);
-                this.loc2pt(loc).then(pt => {
-                    const newImg = new fabric.Image(img.getElement(), {
-                        left: pt.x,
-                        top: pt.y,
-                        angle: 0,
-                        opacity: 1.0,
-                        originX: 'center',
-                        originY: 'center'
-                    });
+    addAircrafts(aircraftList, thisSession) {
+        const promise = new Promise((resolve, reject) => {
+            fabric.Image.fromURL('assets/plane-white.png', (img) => {
+                const promises = [];
+                const addedAircrafts = aircraftList.filter(a => !(a.icao in this.aircraftDict)).forEach(a => {
+                    const icao = a.icao;
+                    const loc = new Microsoft.Maps.Location(a.lat, a.long);
+                    promises.push(this.loc2pt(loc).then(pt => {
+                        const newImg = new fabric.Image(img.getElement(), {
+                            left: pt.x,
+                            top: pt.y,
+                            angle: 0,
+                            opacity: 1.0,
+                            originX: 'center',
+                            originY: 'center'
+                        });
 
-                    this._fabric.add(newImg);
-                    this.aircraftDict[icao] = {
-                        img: newImg,
-                        key: icao,
-                        loc: loc
-                    };
+                        this._fabric.add(newImg);
+                        this.aircraftDict[icao] = {
+                            obj: newImg,
+                            loc: loc
+                        };
+                    }));
                 });
-            });
+                Promise.all(promises).then(() => {
+                    resolve();
+                });
+            }); // fabric.Image.fromURL
         });
+        return promise;
     }
 
-    initAircrafts(aircraftList) {
-        this.clearAllAircrafts();
-        this.addAircrafts(aircraftList);
+    async initAircrafts(aircraftList, thisSession) {
+        this.clearAllAircrafts(thisSession);
+        await this.addAircrafts(aircraftList, thisSession);
     }
 
-    clearAllAircrafts() {
+    clearAllAircrafts(thisSession) {
         for (const key in this.aircraftDict) {
             if (this.aircraftDict.hasOwnProperty(key)) {
                 this._fabric.remove(this.aircraftDict[key].obj);
             }
         }
-        this.aircraftDict = new Map<string, {
-            obj: fabric.Image,
-            loc: any}>();
+        this.aircraftDict = {};
     }
 
 
@@ -81,6 +100,8 @@ export class FlightManager {
         for (let i = 0; i < l; i++) {
             const key = newAircraftList[i]['icao'];
             curKeys[key] = 1;
+
+            // remove airplanes on the ground:
             if (newAircraftList[i]['Gnd'] === true && key in this.aircraftDict) {
                 this._fabric.remove(this.aircraftDict[key].obj);
                 delete this.aircraftDict[key];
@@ -96,65 +117,117 @@ export class FlightManager {
         }
     }
 
-    prepareMoveData(newAircraftList) {
-        return newAircraftList.map(a => {
+    async prepareMoveData(newAircraftList, thisSession) {
+        const promises = [];
+        const result = newAircraftList.map(a => {
+            if (!this.aircraftDict[a.icao]) {
+                console.log(`[${thisSession}] no entry for ${a.icao} during prepareMoveData`);
+                return undefined;
+            }
             const from = this.aircraftDict[a.icao].loc;
             const to = new Microsoft.Maps.Location(a.lat, a.long);
-            const angle = this.compDegAnglePt(this.loc2pt(from), this.loc2pt(to));
-            return {
-                icao: a.icao,
-                from: from,
-                to: to,
-                angle: angle
-            };
+            return Promise.all([this.loc2pt(from), this.loc2pt(to)]).then(([frompt, topt]) => {
+                const angle = this.compDegAnglePt(frompt, topt);
+                return {
+                    icao: a.icao,
+                    from: from,
+                    to: to,
+                    angle: angle
+                };
+            });
         });
+
+        const resultall = await Promise.all(result);
+        return resultall;
     }
 
-    async moveAircrafts(moveData) {
-    const startTime = new Date().getTime();
-    const globalStart = startTime;
-
-    const animate = () => {
-        if (startTime !== globalStart) {
-            return;
+    strippx(s: string): string {
+        if (!s || s === '') {
+            return s;
         }
-        const curTime = new Date().getTime();
-        const elapsedTime = curTime - startTime;
-        if (elapsedTime > this.updateDuration) {
-            return;
+        return s.substring(0, s.length - 2);
+    }
+
+    async moveAircrafts(moveData, thisSession) {
+        const startTime = new Date().getTime();
+        const globalStart = startTime;
+
+        const animate = () => {
+            if (startTime !== globalStart) {
+                return;
+            }
+            // while the user is dragging the canvas, the canvas css top and left is used to move the graphics.
+            // we need to compensate our drawing for that:
+            const currentTop = this.strippx(this._fabric.getContext().canvas.style.top);
+            const currentLeft = this.strippx(this._fabric.getContext().canvas.style.left);
+
+            const curTime = new Date().getTime();
+            const elapsedTime = curTime - startTime;
+            if (elapsedTime > this.updateDuration) {
+                return;
+            }
+            // showTime(curTimestamp + elapsedTime * speedup);
+
+            const promises: Array<Promise<void>> = [];
+            // update location
+            moveData.forEach(d => {
+                if (!!d) {
+                    const loc = this.interpolatePosition(d.from, d.to, curTime, startTime, this.updateDuration);
+                    promises.push(this.loc2pt(loc).then(pt => {
+                        if (!!this.aircraftDict[d.icao]) {
+                            this.aircraftDict[d.icao].obj.left = pt.x - +currentLeft;
+                            this.aircraftDict[d.icao].obj.top = pt.y - +currentTop;
+                            this.aircraftDict[d.icao].obj.angle = d.angle;
+                            this.aircraftDict[d.icao].obj.setCoords();
+                            this.aircraftDict[d.icao].loc = loc;
+                        } else {
+                            console.log(`[${thisSession}] ${d.icao} not found in aircraftDict during moveAircrafts`);
+                        }
+                    }));
+                }
+            });
+
+            Promise.all(promises).then(() => {
+                // next frame
+                fabric.util.requestAnimFrame(animate);
+                this._fabric.renderAll();
+            });
+        };
+
+        animate();
+    }
+
+    logloc2pt() {
+        for (const key in this.aircraftDict) {
+            if (this.aircraftDict.hasOwnProperty(key)) {
+                this.loc2pt(this.aircraftDict[key].loc).then(pt => {
+                    console.log(`log: ${pt.x}, ${pt.y}`);
+                });
+            }
         }
-        // showTime(curTimestamp + elapsedTime * speedup);
+    }
 
-        const promises: Array<Promise<void>> = [];
-        // update location
-        moveData.forEach(d => {
-            const loc = this.interpolatePosition(d.from, d.to, curTime, startTime, this.updateDuration);
-            promises.push(this.loc2pt(loc).then(pt => {
-                this.aircraftDict[d.icao].obj.left = pt.x;
-                this.aircraftDict[d.icao].obj.top = pt.y;
-                this.aircraftDict[d.icao].obj.angle = d.angle;
-                this.aircraftDict[d.icao].obj.setCoords();
-                this.aircraftDict[d.icao].loc = loc;
-            }));
-        });
+    async refreshPositions() {
+        const promises = [];
+        for (const key in this.aircraftDict) {
+            if (this.aircraftDict.hasOwnProperty(key)) {
+                promises.push(this.loc2pt(this.aircraftDict[key].loc).then(pt => {
+                    this.aircraftDict[key].obj.left = pt.x;
+                    this.aircraftDict[key].obj.top = pt.y;
+                }));
+            }
+        }
+        return Promise.all(promises);
+    }
 
-        Promise.all(promises).then(() => {
-            // next frame
-            fabric.util.requestAnimFrame(animate);
-            this._fabric.renderAll();
-        });
-    };
-
-    animate();
-}
-
-    updateAircrafts(newAircraftList) {
+    async updateAircrafts(newAircraftList, thisSession) {
         if (!this._fabric) {
             return;
         }
-        this.addAircrafts(newAircraftList);
-        this.clearAircrafts(newAircraftList);
-        this.moveAircrafts(this.prepareMoveData(newAircraftList));
+        await this.addAircrafts(newAircraftList, thisSession);
+        // this.clearAircrafts(newAircraftList);
+        const moveData = await this.prepareMoveData(newAircraftList, thisSession);
+        this.moveAircrafts(moveData, thisSession);
     }
 
     compDegAngle(src, dest) {
@@ -215,22 +288,22 @@ export class FlightManager {
         return angle * 180 / Math.PI;
     }
 
-    loc2pt(loc: ILatLong) {
+    loc2pt(loc: ILatLong): Promise<IPoint> {
         return this._mapService.LocationToPoint(loc);
     }
 
     interpolatePosition(src: ILatLong, dest: ILatLong, curTimestamp, startTimeStamp, duration) {
-    if (duration === 0) {
-        return dest;
+        if (duration === 0) {
+            return dest;
+        }
+        const latVec = dest.latitude - src.latitude;
+        const longVec = dest.longitude - src.longitude;
+
+        const ratio = (curTimestamp - startTimeStamp) / duration;
+        const curLat = src.latitude + latVec * ratio;
+        const curLong = src.longitude + longVec * ratio;
+
+        return new Microsoft.Maps.Location(curLat, curLong);
     }
-    const latVec = dest.latitude - src.latitude;
-    const longVec = dest.longitude - src.longitude;
-
-    const ratio = (curTimestamp - startTimeStamp) / duration;
-    const curLat = src.latitude + latVec * ratio;
-    const curLong = src.longitude + longVec * ratio;
-
-    return new Microsoft.Maps.Location(curLat, curLong);
-}
 
 } // class

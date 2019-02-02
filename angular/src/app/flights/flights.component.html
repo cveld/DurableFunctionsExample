@@ -1,26 +1,11 @@
 <div class="full-screen-outer">
     <div>
-        <!-- <span *ngFor="let m of _markers | keyvalue; let i=index">
-                [{{ m.key }}, {{!!m.value.icon && !!m.value.icon.size ?  m.value.icon.size.width + "," + m.value.icon.size.height: "N/A"}}]
-        </span> -->
         <div class="floating">
-            <button mat-raised-button color="primary" (click)="addclicked()">Add</button>
-            <button mat-raised-button color="primary" (click)="add2clicked()">Add2</button>
+            <button mat-raised-button color="primary" (click)="startMonitorClicked()">Start</button>
+            <button mat-raised-button color="primary" (click)="stopMonitorClicked()">Stop</button>
         </div>
     </div>
     <x-map #xmap [Options]="_options" [Box]="_box" class="full-height">
-            <my-canvas-layer [MarkerOptions]="_markersarray"></my-canvas-layer>
-            <!-- <x-map-marker-layer
-            [MarkerOptions]="_markersarray"
-            [Visible]="true"
-            [IconInfo]="_icon"
-            (MarkerClick)="_click($event)" >
-          </x-map-marker-layer> -->
-        <!-- <x-map-marker *ngFor="let m of _markers | keyvalue; let i=index" [Latitude]="m.value.latitude" [Longitude]="m.value.longitude" [Title]="'My Marker ' + i.toString()"
-        [IconInfo]="m.value.icon" [IconUrl]="'/assets/plane-white.png'">
-            <x-info-box [DisableAutoPan]="true" [Title]="'My InfoBox ' + i.toString()" [Description]="'Hi, this is the content of the <strong>info window</strong>. It is your responsibility to implement functionality such as close, etc...'">
-                <x-info-box-action [Label]="'Click Me'" (ActionClicked)="_click(i)"></x-info-box-action>
-            </x-info-box>
-        </x-map-marker> -->
+            <my-canvas-layer #mycanvaslayer></my-canvas-layer>
     </x-map>
 </div>

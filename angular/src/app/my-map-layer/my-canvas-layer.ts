@@ -10,6 +10,7 @@ import {
 import { MapLabel } from 'angular-maps/src/models/map-label';
 import { fabric } from 'fabric';
 import { FlightManager } from '../flights/microsoftflightcode';
+import { timeout } from 'q';
 
 /**
  * internal counter to use as ids for polylines.
@@ -50,12 +51,12 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
     ///
     /// Field declarations
     ///
-    private flightManager: FlightManager;
+    public flightManager: FlightManager;
     private _id: number;
     private _layerPromise: Promise<Layer>;
     private _service: LayerService;
     private _canvas: CanvasOverlay;
-    private _fabric: fabric.Canvas;
+    public _fabric: fabric.Canvas;
     private _labels: Array<{loc: ILatLong, title: string}> = new Array<{loc: ILatLong, title: string}>();
     private _tooltip: MapLabel;
     private _tooltipSubscriptions: Array<Subscription> = new Array<Subscription>();
@@ -116,8 +117,7 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
             if (this._streaming) {
                 this._markersLast.push(...val.slice(0));
                 this._markers.push(...val);
-            }
-            else {
+            } else {
                 this._markers = val.slice(0);
             }
         }
@@ -144,8 +144,6 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
 
     /**
      * Sets the visibility of the marker layer
-     *
-     * @memberof MapPolylineLayerDirective
      */
     @Input() public Visible: boolean;
 
@@ -251,44 +249,38 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
             Promise.all([
                     this._layerPromise,
                     this._mapService.CreateCanvasOverlay(el => {
-                        this.DrawLabels(el);
+                        // this.DrawLabels(el);
                         if (!this._fabric) {
                             this._fabric = new fabric.Canvas(el, {
                                 renderOnAddRemove: false,
                                 selection: false
                            });
                            this.flightManager = new FlightManager(this._fabric, this._mapService);
+                        //    const rect = new fabric.Rect({
+                        //     left: 100,
+                        //     top: 50,
+                        //     width: 100,
+                        //     height: 100,
+                        //     fill: 'green'
+                        //   });
+                        //   this._fabric.add(rect);
                         }
-                        this.DrawTest();
-                        this._fabric.renderAll();
+
+                        // this.DrawTest();
+                        const promises = this.flightManager.refreshPositions();
+                        promises.then(() => {
+                             this._fabric.renderAll();
+                        });
+                        // this.runxtimes(5, 100, this.callbackfunc);
                     })
                 ]).then(values => {
                     values[0].SetVisible(this.Visible);
                     this._canvas = values[1];
                     this._canvas._canvasReady.then(b => {
-                        this._tooltip = this._canvas.GetToolTipOverlay();
-                        this.ManageTooltip(this.ShowTooltips);
                     });
-                    if (this.PolylineOptions) {
-                        this._zone.runOutsideAngular(() => this.UpdatePolylines());
-                    }
                 });
             this._service = this._layerService;
         });
-    }
-
-    private DrawTest(): void {
-                    // const labels = this._labels.map(x => x.title);
-                    this._mapService.LocationsToPoints(this._markers.map(x => x.position)).then(locs => {
-                        const size: ISize = this._mapService.MapSize;
-                        for (let i = 0, len = locs.length; i < len; i++) {
-                            // Don't draw the point if it is not in view. This greatly improves performance when zoomed in.
-                            if (locs[i].x >= 0 && locs[i].y >= 0 && locs[i].x <= size.width && locs[i].y <= size.height) {
-                                const text = new fabric.Text('hello world', { left: locs[i].x, top: locs[i].y });
-                                this._fabric.add(text);
-                            }
-                        }
-                    });
     }
 
     /**
@@ -304,44 +296,12 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
         if (this._canvas) { this._canvas.Delete(); }
     }
 
-    private UpdateTest() {
-        if (!this._fabric) {
-            return;
-        }
-
-        // create a rectangle object
-        const rect = new fabric.Rect({
-            left: 100,
-            top: 100,
-            fill: 'red',
-            width: 20,
-            height: 20
-        });
-
-        // "add" rectangle onto canvas
-        this._fabric.add(rect);
-    }
     /**
      * Reacts to changes in data-bound properties of the component and actuates property changes in the underling layer model.
      *
      * @param changes - collection of changes.
      */
     public ngOnChanges(changes: { [key: string]: SimpleChange }) {
-        if (changes['MarkerOptions']) {
-            this._zone.runOutsideAngular(() => {
-                this.UpdateTest();
-                this.UpdateMarkers();
-                if (!!this._fabric) {
-                    this._fabric.renderAll();
-                }
-            });
-        }
-
-        if (changes['PolylineOptions']) {
-            this._zone.runOutsideAngular(() => {
-                this.UpdatePolylines();
-            });
-        }
         if (changes['Visible'] && !changes['Visible'].firstChange) {
             this._layerPromise.then(l => l.SetVisible(this.Visible));
         }
@@ -358,181 +318,13 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
                 this._canvas.Redraw(true);
             }
         }
-        if (changes['ShowTooltips'] && this._tooltip) {
-            this.ManageTooltip(changes['ShowTooltips'].currentValue);
-        }
     }
 
     /**
      * Obtains a string representation of the Layer Id.
      * @returns - string representation of the layer id.
      */
-    public toString(): string { return 'MapPolylineLayer-' + this._id.toString(); }
+    public toString(): string { return 'MyCanvasLayer-' + this._id.toString(); }
 
-    ///
-    /// Private methods
-    ///
-
-    /**
-     * Adds various event listeners for the polylines.
-     *
-     * @param p - the polyline for which to add the event.
-     *
-     */
-    private AddEventListeners(p: Polyline): void {
-        const handlers = [
-            { name: 'click', handler: (ev: MouseEvent) => this.PolylineClick.emit({Polyline: p, Click: ev}) },
-            { name: 'dblclick', handler: (ev: MouseEvent) => this.PolylineDblClick.emit({Polyline: p, Click: ev}) },
-            { name: 'mousemove', handler: (ev: MouseEvent) => this.PolylineMouseMove.emit({Polyline: p, Click: ev}) },
-            { name: 'mouseout', handler: (ev: MouseEvent) => this.PolylineMouseOut.emit({Polyline: p, Click: ev}) },
-            { name: 'mouseover', handler: (ev: MouseEvent) => this.PolylineMouseOver.emit({Polyline: p, Click: ev}) }
-        ];
-        handlers.forEach((obj) => p.AddListener(obj.name, obj.handler));
-    }
-
-    /**
-     * Draws the polyline labels. Called by the Canvas overlay.
-     *
-     * @param el - The canvas on which to draw the labels.
-     */
-    private DrawLabels(el: HTMLCanvasElement): void {
-        if (this.ShowLabels) {
-            this._mapService.GetZoom().then(z => {
-                if (this.LabelMinZoom <= z && this.LabelMaxZoom >= z) {
-                    const ctx: CanvasRenderingContext2D = el.getContext('2d');
-                    const labels = this._labels.map(x => x.title);
-                    this._mapService.LocationsToPoints(this._labels.map(x => x.loc)).then(locs => {
-                        const size: ISize = this._mapService.MapSize;
-                        for (let i = 0, len = locs.length; i < len; i++) {
-                            // Don't draw the point if it is not in view. This greatly improves performance when zoomed in.
-                            if (locs[i].x >= 0 && locs[i].y >= 0 && locs[i].x <= size.width && locs[i].y <= size.height) {
-                                this.DrawText(ctx, locs[i], labels[i]);
-                            }
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    /**
-     * Draws the label text at the appropriate place on the canvas.
-     * @param ctx - Canvas drawing context.
-     * @param loc - Pixel location on the canvas where to center the text.
-     * @param text - Text to draw.
-     */
-    private DrawText(ctx: CanvasRenderingContext2D, loc: IPoint, text: string) {
-        let lo: ILabelOptions = this.LabelOptions;
-        if (lo == null && this._tooltip) { lo = this._tooltip.DefaultLabelStyle; }
-        if (lo == null) { lo = this._defaultOptions; }
-
-        ctx.strokeStyle = lo.strokeColor;
-        ctx.font = `${lo.fontSize}px ${lo.fontFamily}`;
-        ctx.textAlign = 'center';
-        const strokeWeight: number = lo.strokeWeight;
-        if (text && strokeWeight && strokeWeight > 0) {
-                ctx.lineWidth = strokeWeight;
-                ctx.strokeText(text, loc.x, loc.y);
-        }
-        ctx.fillStyle = lo.fontColor;
-        ctx.fillText(text, loc.x, loc.y);
-    }
-
-    /**
-     * Manages the tooltip and the attachment of the associated events.
-     *
-     * @param show - True to enable the tooltip, false to disable.
-     */
-    private ManageTooltip(show: boolean): void {
-        if (show && this._canvas) {
-            // add tooltip subscriptions
-            this._tooltip.Set('hidden', true);
-            this._tooltipVisible = false;
-            this._tooltipSubscriptions.push(this.PolylineMouseMove.asObservable().subscribe(e => {
-                if (this._tooltipVisible) {
-                    const loc: ILatLong = this._canvas.GetCoordinatesFromClick(e.Click);
-                    this._tooltip.Set('position', loc);
-                }
-            }));
-            this._tooltipSubscriptions.push(this.PolylineMouseOver.asObservable().subscribe(e => {
-                if (e.Polyline.Title && e.Polyline.Title.length > 0) {
-                    const loc: ILatLong = this._canvas.GetCoordinatesFromClick(e.Click);
-                    this._tooltip.Set('text', e.Polyline.Title);
-                    this._tooltip.Set('position', loc);
-                    if (!this._tooltipVisible) {
-                        this._tooltip.Set('hidden', false);
-                        this._tooltipVisible = true;
-                    }
-                }
-            }));
-            this._tooltipSubscriptions.push(this.PolylineMouseOut.asObservable().subscribe(e => {
-                if (this._tooltipVisible) {
-                    this._tooltip.Set('hidden', true);
-                    this._tooltipVisible = false;
-                }
-            }));
-        } else {
-            // remove tooltip subscriptions
-            this._tooltipSubscriptions.forEach(s => s.unsubscribe());
-            this._tooltipSubscriptions.splice(0);
-            this._tooltip.Set('hidden', true);
-            this._tooltipVisible = false;
-        }
-    }
-
-    private UpdateMarkers(): void {
-        if (this._layerPromise == null) {
-            return;
-        }
-        this._layerPromise.then(l => {
-            // this._mapService.LocationToPoint()
-
-            if (this._canvas) { this._canvas.Redraw(!this._streaming); }
-        });
-    }
-
-    /**
-     * Sets or updates the polyliness based on the polyline options. This will place the polylines on the map
-     * and register the associated events.
-     *
-     * @memberof MapPolylineLayerDirective
-     * @method
-     */
-    private UpdatePolylines(): void {
-        if (this._layerPromise == null) {
-            return;
-        }
-        this._layerPromise.then(l => {
-            const polylines: Array<IPolylineOptions> = this._streaming ? this._polylinesLast.splice(0) : this._polylines;
-            if (!this._streaming) { this._labels.splice(0); }
-
-            // generate the promise for the polylines
-            const lp: Promise<Array<Polyline|Array<Polyline>>> = this._service.CreatePolylines(l.GetOptions().id, polylines);
-
-            // set polylines once promises are fullfilled.
-            lp.then(p => {
-                const y: Array<Polyline> = new Array<Polyline>();
-                p.forEach(poly => {
-                    if (Array.isArray(poly)) {
-                        let title = '';
-                        const centroids: Array<ILatLong> = new Array<ILatLong>();
-                        poly.forEach(x => {
-                            y.push(x);
-                            this.AddEventListeners(x);
-                            centroids.push(x.Centroid);
-                            if (x.Title != null && x.Title.length > 0 && title.length === 0) { title = x.Title; }
-                        });
-                        this._labels.push({loc: Polyline.GetPolylineCentroid(centroids), title: title});
-                    } else {
-                        y.push(poly);
-                        if (poly.Title != null && poly.Title.length > 0) { this._labels.push({loc: poly.Centroid, title: poly.Title}); }
-                        this.AddEventListeners(poly);
-                    }
-                });
-                this._streaming ? l.AddEntities(y) : l.SetEntities(y);
-                if (this._canvas) { this._canvas.Redraw(!this._streaming); }
-            });
-        });
-    }
 
 }
