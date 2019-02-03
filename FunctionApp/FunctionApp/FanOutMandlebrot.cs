@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Drawing;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Host;
@@ -22,21 +23,21 @@ namespace FunctionApp
         {
             var outputs = new List<string>();
           
-            int maxIt = 5;
+            int maxIt = 100;
             var tasks = new Task<string>[maxIt];
             for (int i = 0; i < maxIt; i++)
             {
                 tasks[i] = context.CallActivityAsync<string>(
                     "GenerateImageFractalFan",
-                    $"MandleBrotImage_{i}");
+                    new FractalInput() { name = $"MandleBrotImage_{i}", zoom = (double)i *0.1});
             }
 
             await Task.WhenAll(tasks);
             var test = tasks.Select(t => t.Result).ToList();
-            //var imageData = await context.CallActivityAsync<string>("GenerateImageFractalFan", "test");
 
-            //outputs.Add(imageData);
-            // returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
+            // Generate video
+            await context.CallActivityAsync<string>("GenerateVideoFromImages", "video1");
+        
             return test;
         }
 
@@ -53,25 +54,29 @@ namespace FunctionApp
 
             return starter.CreateCheckStatusResponse(req, instanceId);
         }
+        
+        [FunctionName("GenerateVideoFromImages")]
+        public static string GenerateVideoFromImages([ActivityTrigger]string name, ILogger log)
+        {
+                return "NOT YET IMPLEMENTED";
+        }
 
+
+        public static string GetSequenceNumberFromBlobStore([ActivityTrigger] string name, ILogger log)
+        {
+            return "video1";
+        }
 
         [FunctionName("GenerateImageFractalFan")]
         public static string GenerateImageFractal(
                             [ActivityTrigger]
-                            string name,
+                            FractalInput input,
                             ILogger log)
         {
-            FractalInit initdata = new FractalInit
-            {
-                height = 800,
-                maxIterations = 128,
-                width = 800,
-                xMax = 1,
-                xMin = -3,
-                yMax = 2,
-                yMin = -2
-            };
 
+            // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
+            // Lm = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
+            FractalInit initdata = InitData(0, 0, input.zoom);
             // Create a surface.
             var info = new SKImageInfo(initdata.width, initdata.height);
 
@@ -95,9 +100,9 @@ namespace FunctionApp
                 using (var image = surface.Snapshot())
                 {
                     SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-                    CreateBlob($"run2/{name}.png", data);
+                    CreateBlob($"run8/{input.name}.png", data);
 
-                    return $"Finished - {name}";
+                    return $"Finished - {input.name}";
                 }
             }
         }
@@ -133,19 +138,34 @@ namespace FunctionApp
             }
         }
 
-        public class ImageData
+       static public FractalInit InitData(double x, double y, double zoom)
         {
-            public SKData _skData { get; set; }
+            // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
+            // Lm = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
+            x = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995;
+            y = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995;
 
-            public ImageData(SKData skData)
-            {
-                _skData = skData;
-            }
+            double x_min = x - zoom;
+            double x_max = x + zoom;
 
-            public string GetSize()
+            double y_min = y - zoom;
+            double y_max = y + zoom;
+            return new FractalInit
             {
-                return _skData.Size.ToString();
-            }
+                height = 800,
+                maxIterations = 128,
+                width = 800,
+                xMax = x_max,
+                xMin = x_min,
+                yMax = y_max,
+                yMin = -y_min
+            };
+        }
+
+        public class FractalInput
+        {
+            public double zoom;
+            public string name;
         }
     }
 }
