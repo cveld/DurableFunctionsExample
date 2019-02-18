@@ -1,0 +1,33 @@
+<div class="container">
+  <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="space-around center" class="content" fxLayout="column">
+      <mat-card class="card">
+          <mat-card-title fxLayout.gt-xs="row" fxLayout.xs="column">
+              <h3>Fractal fan out!</h3>
+          </mat-card-title>
+          <mat-card-content class="my-card-content">
+
+                  <mat-slide-toggle
+                      class="toggle-margin"
+                      color="primary"
+                      (change)="onSlideToggleChange($event)"
+                      [checked]="showTokens">
+                      Show token
+                  </mat-slide-toggle>
+
+              <button mat-raised-button color="primary" (click)="startClicked()">Start</button>
+              <button mat-raised-button color="primary" (click)="getMeData()">Get Me data</button>
+              <button mat-raised-button color="primary" (click)="authTesterClicked()">Auth tester</button>
+          </mat-card-content>
+      </mat-card>
+      <mat-card class="card" *ngIf="showTokens">
+          <mat-card-content>
+              {{easyAuth.authToken}}
+          </mat-card-content>
+      </mat-card>
+      <mat-card class="card" *ngFor="let message of messages">
+          <mat-card-content>
+              {{message | json}}
+          </mat-card-content>
+      </mat-card>
+  </div>
+</div>

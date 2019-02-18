@@ -10,8 +10,15 @@ using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
 using System.Linq;
+using System.Net.Http;
+using System;
+
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FunctionApp
 {
@@ -22,14 +29,14 @@ namespace FunctionApp
             [OrchestrationTrigger] DurableOrchestrationContext context)
         {
             var outputs = new List<string>();
-          
-            int maxIt = 100;
+
+            int maxIt = 1;
             var tasks = new Task<string>[maxIt];
             for (int i = 0; i < maxIt; i++)
             {
                 tasks[i] = context.CallActivityAsync<string>(
                     "GenerateImageFractalFan",
-                    new FractalInput() { name = $"MandleBrotImage_{i}", zoom = (double)i *0.1});
+                    new FractalInput() { name = $"MandleBrotImage_{i}", zoom = (double)i * 0.01});
             }
 
             await Task.WhenAll(tasks);
@@ -67,15 +74,37 @@ namespace FunctionApp
             return "video1";
         }
 
+        [FunctionName("FractalTester")]
+        public static async Task<HttpResponseMessage> FractalTester(
+        [HttpTrigger(AuthorizationLevel.Anonymous, methods: "post")]
+            HttpRequestMessage req,
+        ILogger log)
+        {
+            var body = await req.Content.ReadAsStringAsync();
+            var input = JsonConvert.DeserializeObject<FractalInput>(body);
+            await GenerateImageFractal(input, null, log);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+        }
+
         [FunctionName("GenerateImageFractalFan")]
-        public static string GenerateImageFractal(
+        public static async Task<string> GenerateImageFractal(
                             [ActivityTrigger]
                             FractalInput input,
+                            [SignalR(HubName = "carlintveld")] IAsyncCollector<SignalRMessage> signalRMessages,
                             ILogger log)
         {
-
+            if (signalRMessages != null)
+            {
+                await signalRMessages.AddAsync(new SignalRMessage
+                {
+                    Target = "FanoutEvent",
+                    Arguments = new[] { "Broadcast" }
+                });
+                await signalRMessages.FlushAsync();
+            }
+            
             // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
-            // Lm = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
+            // Im = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
             FractalInit initdata = InitData(0, 0, input.zoom);
             // Create a surface.
             var info = new SKImageInfo(initdata.width, initdata.height);
@@ -100,7 +129,7 @@ namespace FunctionApp
                 using (var image = surface.Snapshot())
                 {
                     SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-                    CreateBlob($"run8/{input.name}.png", data);
+                    await CreateBlob($"run2/{input.name}.png", data);
 
                     return $"Finished - {input.name}";
                 }
@@ -108,48 +137,45 @@ namespace FunctionApp
         }
 
 
-        private static void CreateBlob(string name, SKData data)
+        private static async Task CreateBlob(string name, SKData data)
         {
-            string accessKey;
-            string accountName;
-            string connectionString;
             CloudStorageAccount storageAccount;
             CloudBlobClient client;
             CloudBlobContainer container;
             CloudBlockBlob blob;
 
-            accessKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==";//ConfigurationManager.AppSettings["CyotekStorageAccessKey"];
-            accountName = "devstoreaccount1";//ConfigurationManager.AppSettings["CyotekStorageAccountName"];
-            connectionString = $"UseDevelopmentStorage=true";//;DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accessKey};EndpointSuffix=core.windows.net";
+            string connectionString = System.Environment.GetEnvironmentVariable("AzureStorageConnectionString", EnvironmentVariableTarget.Process);
+
             storageAccount = CloudStorageAccount.Parse(connectionString);
 
             client = storageAccount.CreateCloudBlobClient();
 
             container = client.GetContainerReference("testing123");
 
-            container.CreateIfNotExistsAsync();
+            await container.CreateIfNotExistsAsync();
 
             blob = container.GetBlockBlobReference(name);
             blob.Properties.ContentType = "image/png"; // could be application/octet-stream
 
             using (var stream = data.AsStream())
             {
-                blob.UploadFromStreamAsync(stream);
+                await blob.UploadFromStreamAsync(stream);
             }
         }
 
        static public FractalInit InitData(double x, double y, double zoom)
         {
             // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
-            // Lm = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
-            x = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995;
-            y = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995;
+            // Im = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
+            x = 1.0;// 1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995;
+            y = 1.0;//0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995;
+            //x = 2;
+            //y = 2;
+            double x_min = x * -zoom;
+            double x_max = x * zoom;
 
-            double x_min = x - zoom;
-            double x_max = x + zoom;
-
-            double y_min = y - zoom;
-            double y_max = y + zoom;
+            double y_min = y * -zoom;
+            double y_max = y * zoom;
             return new FractalInit
             {
                 height = 800,
@@ -158,14 +184,28 @@ namespace FunctionApp
                 xMax = x_max,
                 xMin = x_min,
                 yMax = y_max,
-                yMin = -y_min
+                yMin = y_min
             };
         }
 
         public class FractalInput
         {
-            public double zoom;
-            public string name;
+            public double zoom { get; set; }
+            public string name { get; set; }
+        }
+
+        [FunctionName("GetSequenceNumber")]
+        public static string GetSequenceNumber( [ActivityTrigger]FractalInput input, ILogger log)
+        {
+            string connectionString = System.Environment.GetEnvironmentVariable("AzureStorageConnectionString", EnvironmentVariableTarget.Process);
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
+            var client = storageAccount.CreateCloudTableClient();
+            var table = client.GetTableReference("Sequence");
+
+            table.CreateIfNotExistsAsync();
+           // var t = new TableEntity()
+            var op = TableOperation.Insert(null);
+            return "1";
         }
     }
 }

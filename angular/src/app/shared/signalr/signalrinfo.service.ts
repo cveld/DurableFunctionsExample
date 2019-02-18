@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { ReplaySubject, Observable, Subscription, Subject } from 'rxjs';
 import { shareReplay, map, tap } from 'rxjs/operators';
 import { HubConnectionBuilder, HubConnection } from '@aspnet/signalr';
-import { ConfigurationService } from '../../lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationService } from '../../lib/Configuration';
 import * as jwtDecode from 'jwt-decode';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { TokenService } from '../token/token.service';
@@ -20,6 +20,7 @@ export class SignalrinfoService implements OnDestroy {
     private exponentionalBackoff = [2, 5, 10, 15, 20, 25, 30];
     private exponentionalBackoffIndex = 0;
     durable$: Subject<any>;
+    fanout$: Subject<any>;
 
     constructor(
         private http: HttpClient,
@@ -29,6 +30,7 @@ export class SignalrinfoService implements OnDestroy {
         ) {
         this.carlintveld$ = new Subject<any>();
         this.durable$ = new Subject<any>();
+        this.fanout$ = new Subject<any>();
         this.apiBaseUrl = this.configurationService.getValue('functionsApp');
         this.initializeHub();
     }
@@ -89,6 +91,7 @@ export class SignalrinfoService implements OnDestroy {
         .build();
     connection.on('carlintveldEvent', (...params) => this.carlintveldEvent(...params));
     connection.on('durableEvent', (...params) => this.durableEvent(...params));
+    connection.on('FanoutEvent', (...params) => this.fanoutEvent(...params));
     connection.onclose(() => {
         // after a disconnect signalr backend drops the groups context for the connection. We need to readd user to signalr groups
         console.log('disconnected');
@@ -99,6 +102,10 @@ export class SignalrinfoService implements OnDestroy {
     }
     durableEvent(...data): void {
         this.durable$.next(data);
+    }
+
+    fanoutEvent(...data): void {
+        this.fanout$.next(data);
     }
 
     private carlintveldEvent(...data) {

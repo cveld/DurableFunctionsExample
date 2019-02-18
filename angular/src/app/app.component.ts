@@ -3,7 +3,7 @@ import { SignalrinfoService, EasyAuthService } from './shared';
 import { MediaMatcher } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { ConfigurationService } from './lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationService } from './lib/Configuration';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({

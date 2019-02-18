@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationService } from '../lib/Configuration';
 import { EasyAuthService } from '../shared';
 import { Router } from '@angular/router';
 

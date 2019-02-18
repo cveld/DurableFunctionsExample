@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { ConfigurationModule, ConfigurationService } from './lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationModule, ConfigurationService } from './lib/Configuration';
 import { MapModule, MapAPILoader, BingMapAPILoaderConfig, BingMapAPILoader, WindowRef, DocumentRef,
         MapServiceFactory, BingMapServiceFactory } from 'angular-maps';
 import {
@@ -53,6 +53,7 @@ import { EasyAuthModule } from './shared/easy-auth/easy-auth.module';
 import { AuthtesterComponent } from './authtester/authtester.component';
 import { LoginComponent } from './login/login.component';
 import { FlightsComponent } from './flights/flights.component';
+import { FanoutComponent } from './fanout/fanout.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +63,8 @@ import { FlightsComponent } from './flights/flights.component';
     LoginbarComponent,
     AuthtesterComponent,
     LoginComponent,
-    FlightsComponent
+    FlightsComponent,
+    FanoutComponent
   ],
   imports: [
     BrowserModule,
