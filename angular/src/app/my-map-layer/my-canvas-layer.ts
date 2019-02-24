@@ -153,44 +153,6 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
      */
     @Input() public ZIndex = 0;
 
-    ///
-    /// Delegates
-    ///
-
-    /**
-     * This event emitter gets emitted when the user clicks a polyline in the layer.
-     *
-     * @memberof MapPolylineLayerDirective
-     */
-    @Output() public PolylineClick: EventEmitter<IPolylineEvent> = new EventEmitter<IPolylineEvent>();
-
-    /**
-     * This event is fired when the DOM dblclick event is fired on a polyline in the layer.
-     *
-     * @memberof MapPolylineLayerDirective
-     */
-    @Output() PolylineDblClick: EventEmitter<IPolylineEvent> = new EventEmitter<IPolylineEvent>();
-
-    /**
-     * This event is fired when the DOM mousemove event is fired on a polyline in the layer.
-     *
-     * @memberof MapPolylineLayerDirective
-     */
-    @Output() PolylineMouseMove: EventEmitter<IPolylineEvent> = new EventEmitter<IPolylineEvent>();
-
-    /**
-     * This event is fired on mouseout on a polyline in the layer.
-     *
-     * @memberof MapPolylineLayerDirective
-     */
-    @Output() PolylineMouseOut: EventEmitter<IPolylineEvent> = new EventEmitter<IPolylineEvent>();
-
-    /**
-     * This event is fired on mouseover on a polyline in a layer.
-     *
-     * @memberof MapPolylineLayerDirective
-     */
-    @Output() PolylineMouseOver: EventEmitter<IPolylineEvent> = new EventEmitter<IPolylineEvent>();
 
 
 
@@ -201,8 +163,6 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
     /**
      * Gets the id of the polyline layer.
      *
-     * @readonly
-     * @memberof MapPolylineLayerDirective
      */
     public get Id(): number { return this._id; }
 
@@ -230,7 +190,6 @@ export class MyCanvasLayerDirective implements OnDestroy, OnChanges, AfterConten
     /**
      * Called after Component content initialization. Part of ng Component life cycle.
      *
-     * @memberof MapPolylineLayerDirective
      */
     public ngAfterContentInit() {
         const layerOptions: ILayerOptions = {

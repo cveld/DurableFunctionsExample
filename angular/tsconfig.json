@@ -14,10 +14,14 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+    "types": ["node"],
     "lib": [
       "es2018",
       "dom"
     ]
   },
-  "exclude": [ "node_modules" ]
+  "files": [
+      "node_modules/angular-maps/index.ts"
+  ]
+  // "exclude": [ "node_modules" ]
 }

@@ -23,6 +23,7 @@ namespace FunctionApp.Activities
 
     public class SendFlightDataSignalR2_SupportOutput
     {
+        public long time { get; set; }
         public int Next { get; set; }
         public int Count { get; set; }
         public List<FlightData> Result { get; set; }
@@ -193,14 +194,14 @@ namespace FunctionApp.Activities
 
 
         [FunctionName("SendFlightDataSignalRActivity")]
-        public static int SendFlightDataSignalRActivity(
+        public static (int, long) SendFlightDataSignalRActivity(
    ExecutionContext context,
    [ActivityTrigger]SendFlightDataSignalRActivityInput input,   
    [SignalR(HubName = "carlintveld")] IAsyncCollector<SignalRMessage> signalRMessages,
    ILogger logger)
         {
             var result = SendFlightDataSignalR2_Support(input.index, input.count, context, signalRMessages, logger, allplanes: true);
-            return result.Next;
+            return (result.Next, result.time);
         }
 
 
@@ -243,13 +244,9 @@ namespace FunctionApp.Activities
 
             var orderedset = dictionaryplanes.OrderByDescending(item => item.Value.Count);
             var limitedplanes = orderedset.Take(20).Select(i => i.Key).ToHashSet();
-
-           
             var timeitem = dictionarytime.Skip(index).Take(1).First();
 
             var resultlist = new List<FlightData>();
-
-
             foreach (var flight in timeitem.Value)
             {
                 if (limitedplanes.Contains(flight.icao24))
@@ -277,10 +274,11 @@ namespace FunctionApp.Activities
             
 
             return new SendFlightDataSignalR2_SupportOutput { 
-                    Next = (index + 15) % dictionarytime.Count,
-                    Count = resultlist.Count,
-                    Result = resultlist
-                };
+                time = timeitem.Key,
+                Next = (index + 15) % dictionarytime.Count,
+                Count = resultlist.Count,
+                Result = resultlist
+            };
         } // method
 
         [FunctionName("GetFlightData")]

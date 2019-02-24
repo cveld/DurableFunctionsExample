@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Marker, IMapOptions, MarkerTypeId, IBox, IMarkerIconInfo, ILatLong, MapTypeId, IMarkerOptions } from 'angular-maps';
+import { Marker, IMapOptions, MarkerTypeId, IBox, IMarkerIconInfo, ILatLong, MapTypeId,
+            IMarkerOptions } from 'angular-maps';
 import { SignalrinfoService, EasyAuthService } from '../shared';
 import { Subscription } from 'rxjs';
 import { MyCanvasLayerDirective } from '../my-map-layer/my-canvas-layer';
@@ -86,10 +87,15 @@ export class FlightsComponent implements OnInit {
     }
 
     handleFlights(data) {
+        if (!this.mycanvaslayer.flightManager) {
+            console.log('flightManager not yet initialized; incoming data will not be processed');
+            return;
+        }
         const flights = data[0];
-        this.mycanvaslayer.flightManager.flightDataReceived(10000, flights.map(f => {
+        this.mycanvaslayer.flightManager.flightDataReceived(2000, flights.map(f => {
             return {
-                icao : f.icao24,
+                time: f.time,
+                icao: f.icao24,
                 lat: f.Lat,
                 long: f.Lon};
             }), undefined, undefined, flights[0].time );

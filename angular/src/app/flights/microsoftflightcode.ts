@@ -7,6 +7,7 @@ export class FlightManager {
     speedup: number;
     updateDuration: number;
     aircraftDict: {[index: string]: {
+        time: number,
         obj: fabric.Image,
         loc: any }
     } = {};
@@ -38,6 +39,7 @@ export class FlightManager {
             this.initAircrafts(aircrafts, thisSession);
             this.isInit = true;
         } else {
+            console.log(`[${thisSession}] ${timestamp}`);
             this.updateAircrafts(aircrafts, thisSession);
         }
     }
@@ -67,7 +69,8 @@ export class FlightManager {
                         this._fabric.add(newImg);
                         this.aircraftDict[icao] = {
                             obj: newImg,
-                            loc: loc
+                            loc: loc,
+                            time: a.time
                         };
                     }));
                 });
@@ -118,14 +121,20 @@ export class FlightManager {
     }
 
     async prepareMoveData(newAircraftList, thisSession) {
+        console.log(`[${thisSession}] ${newAircraftList[0].time}`);
         const promises = [];
         const result = newAircraftList.map(a => {
-            if (!this.aircraftDict[a.icao]) {
+            const currentAircraftDict = this.aircraftDict[a.icao];
+            if (!currentAircraftDict) {
                 console.log(`[${thisSession}] no entry for ${a.icao} during prepareMoveData`);
                 return undefined;
             }
-            const from = this.aircraftDict[a.icao].loc;
+            let from = currentAircraftDict.loc;
             const to = new Microsoft.Maps.Location(a.lat, a.long);
+            if (a.time < currentAircraftDict.time) {
+                from = to;
+            }
+            currentAircraftDict.time = a.time;
             return Promise.all([this.loc2pt(from), this.loc2pt(to)]).then(([frompt, topt]) => {
                 const angle = this.compDegAnglePt(frompt, topt);
                 return {
@@ -221,12 +230,14 @@ export class FlightManager {
     }
 
     async updateAircrafts(newAircraftList, thisSession) {
+        console.log(`[${thisSession}] updateAircrafts entry`);
         if (!this._fabric) {
             return;
         }
         await this.addAircrafts(newAircraftList, thisSession);
         // this.clearAircrafts(newAircraftList);
         const moveData = await this.prepareMoveData(newAircraftList, thisSession);
+        console.log(`[${thisSession}] ${new Date().getTime()}`);
         this.moveAircrafts(moveData, thisSession);
     }
 

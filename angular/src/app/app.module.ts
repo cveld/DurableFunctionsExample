@@ -1,6 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
@@ -53,7 +52,6 @@ import { EasyAuthModule } from './shared/easy-auth/easy-auth.module';
 import { AuthtesterComponent } from './authtester/authtester.component';
 import { LoginComponent } from './login/login.component';
 import { FlightsComponent } from './flights/flights.component';
-import { MyMapLayerDirective } from './my-map-layer/my-map-layer.component';
 import { MyCanvasLayerDirective } from './my-map-layer/my-canvas-layer';
 
 @NgModule({
@@ -65,7 +63,6 @@ import { MyCanvasLayerDirective } from './my-map-layer/my-canvas-layer';
     AuthtesterComponent,
     LoginComponent,
     FlightsComponent,
-    MyMapLayerDirective,
     MyCanvasLayerDirective
   ],
   imports: [
