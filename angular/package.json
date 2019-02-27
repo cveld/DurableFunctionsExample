@@ -8,7 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "upload": "az storage blob upload-batch -s dist/ng7 -d $web --account-name <youraccountname>"
+    "upload": "az storage blob upload-batch -s dist/ng7 -d $web --account-name carlintveldv2"
   },
   "private": true,
   "dependencies": {
@@ -24,10 +24,12 @@
     "@angular/platform-browser-dynamic": "~7.1.0",
     "@angular/router": "~7.1.0",
     "@aspnet/signalr": "^1.1.0",
+    "@types/fabric": "^1.5.50",
     "@types/jwt-decode": "^2.2.1",
-    "angular-maps": "^6.0.1",
+    "angular-maps": "github:cveld/angular-maps#feature/binglitemode",
     "bingmaps": "^2.0.3",
     "core-js": "^2.5.4",
+    "fabric": "^2.6.0",
     "jwt-decode": "^2.2.0",
     "rxjs": "~6.3.3",
     "tslib": "^1.9.0",

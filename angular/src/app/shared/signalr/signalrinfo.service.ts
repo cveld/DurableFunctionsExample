@@ -16,10 +16,11 @@ export class SignalrinfoService implements OnDestroy {
     private cache$: Observable<any>;
     private subscriptions: Subscription[] = new Array<Subscription>();
     public carlintveld$: Subject<any>;
-    connectioninfo: any;
+    public connectioninfo: any;
     private exponentionalBackoff = [2, 5, 10, 15, 20, 25, 30];
     private exponentionalBackoffIndex = 0;
-    durable$: Subject<any>;
+    public durable$: Subject<any>;
+    public flights$: Subject<any>;
 
     constructor(
         private http: HttpClient,
@@ -29,6 +30,7 @@ export class SignalrinfoService implements OnDestroy {
         ) {
         this.carlintveld$ = new Subject<any>();
         this.durable$ = new Subject<any>();
+        this.flights$ = new Subject<any>();
         this.apiBaseUrl = this.configurationService.getValue('functionsApp');
         this.initializeHub();
     }
@@ -87,6 +89,7 @@ export class SignalrinfoService implements OnDestroy {
     const connection = new HubConnectionBuilder()
         .withUrl(data.url, options)
         .build();
+    connection.on('flightEvent', (...params) => this.flightsEvent(...params));
     connection.on('carlintveldEvent', (...params) => this.carlintveldEvent(...params));
     connection.on('durableEvent', (...params) => this.durableEvent(...params));
     connection.onclose(() => {
@@ -99,6 +102,10 @@ export class SignalrinfoService implements OnDestroy {
     }
     durableEvent(...data): void {
         this.durable$.next(data);
+    }
+
+    flightsEvent(...data): void {
+        this.flights$.next(data);
     }
 
     private carlintveldEvent(...data) {
