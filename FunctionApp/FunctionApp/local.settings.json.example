@@ -8,8 +8,11 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         // Cloud:
         // "FunctionsApp": "https://<yourfunctionsapp>.azurewebsites.net",
-        // Local:
-        "FunctionsApp": "http://localhost:7071"
+        // "AuthEnabled": true
+
+        // Local settings:
+        "FunctionsApp": "http://localhost:7071",
+        "AuthEnabled": false
     },
     "Host": {
         "CORS": "*"
