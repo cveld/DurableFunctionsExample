@@ -57,7 +57,8 @@ export class FlightsComponent implements OnInit {
 
     startMonitorClicked() {
         const apiBaseUrl = this.configurationService.getValue('functionsApp');
-        this.easyAuth.getAuthToken().then((token) => {
+        const authEnabled = this.configurationService.getValue('authEnabled') !== 'false';
+        this.easyAuth.getAuthToken(authEnabled, authEnabled).then((token) => {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
                 'X-ZUMO-AUTH': token

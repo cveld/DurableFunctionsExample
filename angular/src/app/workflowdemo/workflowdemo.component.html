@@ -14,7 +14,8 @@
                 </mat-slide-toggle>
 
                     <button mat-raised-button color="primary" (click)="signalrclicked()">SignalR</button>
-                    <button mat-raised-button color="primary" (click)="durableFunctionClicked()">Durable function</button>
+                    <button mat-raised-button color="primary" (click)="durableFunctionClicked()">Sequence</button>
+                    <button mat-raised-button color="primary" (click)="suborchestratorClicked()">Suborchestrator</button>
             </mat-card-content>
         </mat-card>
         <mat-card class="card" *ngIf="showConfiginfo">
@@ -26,6 +27,7 @@
             <mat-card-content>
                 id = {{durableFunction.value.id}}; <br/>
                 message = {{durableFunction.value.message}}
+                <button *ngIf="durableFunction.value.progress != 100" mat-raised-button color="primary" (click)="cancelClicked(durableFunction.value.id)">Cancel</button>
                 <mat-progress-bar mode="determinate" value="{{durableFunction.value.progress}}"></mat-progress-bar>
             </mat-card-content>
         </mat-card>
