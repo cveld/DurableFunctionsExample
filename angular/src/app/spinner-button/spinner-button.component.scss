@@ -1,0 +1,18 @@
+mat-spinner {
+    display: inline-flex;
+  }
+
+  .label {
+    padding-left: 8px;
+  }
+:host {
+  /deep/ button {
+    mat-spinner {
+
+    }
+
+    circle {
+      stroke: currentColor!important;
+    }
+  }
+}

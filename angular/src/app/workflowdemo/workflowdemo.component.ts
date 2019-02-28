@@ -5,11 +5,18 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
 import { MatSlideToggleChange } from '@angular/material';
 
-interface DurableFunctionsMapEntity {
+class DurableFunctionsMapEntity {
     id: string;
     message?: string;
     progress?: number;
     api?: DurableFunctionResponse;
+    cancelClicked = false;
+    closed = false;
+    cancellable = true;
+
+    constructor(id: string) {
+        this.id = id;
+    }
 }
 
 @Component({
@@ -31,6 +38,10 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
         private easyAuth: EasyAuthService
     ) { }
 
+    public suborchestratorCounter = 0;
+    public signalrCounter = 0;
+    public sequenceCounter = 0;
+
     ngOnInit() {
         this.connectionInfo$ = this.signalrinfoService.connectioninfo;
         this.subscriptions.push(this.signalrinfoService.carlintveld$.subscribe(data => {
@@ -41,7 +52,7 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
 
     handleDurable(data) {
         if (!this.durableFunctions.get(data[0].id)) {
-            this.durableFunctions.set(data[0].id, { id : data[0].id });
+            this.durableFunctions.set(data[0].id, new DurableFunctionsMapEntity(data[0].id));
         } else {
             if (this.durableFunctions.get(data[0].id).progress === 100) {
                 return;
@@ -57,6 +68,7 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
         });
     }
     signalrclicked() {
+        this.signalrCounter++;
         const apiBaseUrl = this.configurationService.getValue('functionsApp');
         const code = this.configurationService.getValue('functionsAppCode');
 
@@ -70,13 +82,17 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
                 options = { headers: headers };
             }
             this.http.get<any>(`${apiBaseUrl}/api/SendSignalRMessage?code=${code}`, options).subscribe(data => {
+            }, undefined, () => {
+                this.signalrCounter--;
             });
         });
     }
 
     durableFunctionClicked() {
+        this.sequenceCounter++;
         const apiBaseUrl = this.configurationService.getValue('functionsApp');
-        this.easyAuth.getAuthToken().then((token) => {
+        const authEnabled = this.configurationService.getValue('authEnabled') !== 'false';
+        this.easyAuth.getAuthToken(authEnabled, authEnabled).then((token) => {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
                 'X-ZUMO-AUTH': token
@@ -84,7 +100,14 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
              });
             this.http.post<any>(`${apiBaseUrl}/api/orchestrators/E1_HelloSequence`, null).subscribe(data => {
                 // this.messages.push(`Durable: ${data.statusQueryGetUri}`);
-                this.durableFunctions.set(data.id, { id: data.id, message: 'Initialized', progress: 0, api: data });
+                const entity = new DurableFunctionsMapEntity(data.id);
+                entity.message = 'initialized';
+                entity.progress = 0;
+                entity.api = data;
+                entity.cancellable = false;
+                this.durableFunctions.set(data.id, entity);
+            }, undefined, () => {
+                this.sequenceCounter--;
             });
         });
     }
@@ -92,6 +115,7 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
 
 
     suborchestratorClicked() {
+        this.suborchestratorCounter++;
         const apiBaseUrl = this.configurationService.getValue('functionsApp');
         const authEnabled = this.configurationService.getValue('authEnabled') !== 'false';
         this.easyAuth.getAuthToken(authEnabled, authEnabled).then((token) => {
@@ -103,7 +127,14 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
             // tslint:disable-next-line:max-line-length
             this.http.post<DurableFunctionResponse>(`${apiBaseUrl}/api/orchestrators/E1_HelloSequenceWithSuborchestrator`, null).subscribe(data => {
                 // this.messages.push(`Durable: ${data.statusQueryGetUri}`);
-                this.durableFunctions.set(data.id, { id: data.id, message: 'Initialized', progress: 0, api: data });
+                const entity = new DurableFunctionsMapEntity(data.id);
+                entity.message = 'initialized';
+                entity.progress = 0;
+                entity.api = data;
+                this.durableFunctions.set(data.id, entity);
+            }, undefined, () => {
+                // completed default behaviour:
+                this.suborchestratorCounter--;
             });
         });
     }
@@ -114,9 +145,17 @@ export class WorkflowdemoComponent implements OnInit, OnDestroy {
     }
 
     cancelClicked(id) {
+        this.durableFunctions.get(id).cancelClicked = true;
         let uri = this.durableFunctions.get(id).api.sendEventPostUri;
         uri = uri.replace('{eventName}', 'CancelSequence');
-        this.http.post<DurableFunctionResponse>(uri, {data: 33}).subscribe();
+        this.http.post<DurableFunctionResponse>(uri, {data: 33}).subscribe(undefined, () => {
+            // Error; let's reset the spinner
+            this.durableFunctions.get(id).cancelClicked = false;
+        });
+    }
+
+    closeClicked(id) {
+        this.durableFunctions.get(id).closed = true;
     }
 
 }

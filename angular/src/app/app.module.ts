@@ -53,6 +53,7 @@ import { AuthtesterComponent } from './authtester/authtester.component';
 import { LoginComponent } from './login/login.component';
 import { FlightsComponent } from './flights/flights.component';
 import { MyCanvasLayerDirective } from './my-map-layer/my-canvas-layer';
+import { SpinnerButtonComponent } from './spinner-button/spinner-button.component';
 
 @NgModule({
   declarations: [
@@ -63,7 +64,8 @@ import { MyCanvasLayerDirective } from './my-map-layer/my-canvas-layer';
     AuthtesterComponent,
     LoginComponent,
     FlightsComponent,
-    MyCanvasLayerDirective
+    MyCanvasLayerDirective,
+    SpinnerButtonComponent
   ],
   imports: [
     BrowserModule,
@@ -71,7 +73,7 @@ import { MyCanvasLayerDirective } from './my-map-layer/my-canvas-layer';
     HttpClientModule,
     BrowserAnimationsModule,
     MatButtonModule, MatCheckboxModule, MatToolbarModule, MatIconModule, MatListModule, MatProgressBarModule,
-    MatSidenavModule, MatCardModule, MatSlideToggleModule,
+    MatSidenavModule, MatCardModule, MatSlideToggleModule, MatProgressSpinnerModule,
     FlexLayoutModule,
     ConfigurationModule,
     MapModule.forRoot()
