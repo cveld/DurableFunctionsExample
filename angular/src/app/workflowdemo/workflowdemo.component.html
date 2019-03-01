@@ -28,7 +28,9 @@
                 <mat-card-content>
                     id = {{durableFunction.value.id}}; <br/>
                     message = {{durableFunction.value.message}}
-                    <span (click)="closeClicked(durableFunction.value.id)" class="close" *ngIf="durableFunction.value.progress == 100"><mat-icon inline="true">close</mat-icon></span>
+                    <button mat-icon-button (click)="closeClicked(durableFunction.value.id)" class="close" *ngIf="durableFunction.value.progress == 100">
+                        <mat-icon inline="true">close</mat-icon>
+                    </button>
                     <app-spinner-button
                         class="cancel"
                         *ngIf="durableFunction.value.cancellable && durableFunction.value.progress != 100"
