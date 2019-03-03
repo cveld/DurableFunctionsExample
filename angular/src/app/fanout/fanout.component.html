@@ -24,9 +24,14 @@
               {{easyAuth.authToken}}
           </mat-card-content>
       </mat-card>
+      <mat-card *ngIf="messages.length > 0;">
+          Loop Test
+          <img src={{messages[imageIndex].url}} />
+      </mat-card>
       <mat-card class="card" *ngFor="let message of messages">
           <mat-card-content>
-              {{message | json}}
+              <img src={{message.url}} width="30%" height="30%" />
+              <p>{{message.text | json}}</p>
           </mat-card-content>
       </mat-card>
   </div>
