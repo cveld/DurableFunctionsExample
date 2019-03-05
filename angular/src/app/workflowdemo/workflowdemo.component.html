@@ -13,8 +13,9 @@
                     Show config info
                 </mat-slide-toggle>
 
-                    <button mat-raised-button color="primary" (click)="signalrclicked()">SignalR</button>
-                    <button mat-raised-button color="primary" (click)="durableFunctionClicked()">Durable function</button>
+                    <app-spinner-button (click)="signalrclicked()" [spinner]="signalrCounter > 0">SignalR</app-spinner-button>
+                    <app-spinner-button (click)="durableFunctionClicked()" [spinner]="sequenceCounter > 0">Sequence</app-spinner-button>
+                    <app-spinner-button (click)="suborchestratorClicked()" [spinner]="suborchestratorCounter > 0">Suborchestrator</app-spinner-button>
             </mat-card-content>
         </mat-card>
         <mat-card class="card" *ngIf="showConfiginfo">
@@ -22,13 +23,23 @@
                     {{signalrinfoService.connectioninfo|json}}
             </mat-card-content>
         </mat-card>
-        <mat-card class="card" *ngFor="let durableFunction of durableFunctions | keyvalue">
-            <mat-card-content>
-                id = {{durableFunction.value.id}}; <br/>
-                message = {{durableFunction.value.message}}
-                <mat-progress-bar mode="determinate" value="{{durableFunction.value.progress}}"></mat-progress-bar>
-            </mat-card-content>
-        </mat-card>
+        <ng-container *ngFor="let durableFunction of durableFunctions | keyvalue">
+            <mat-card class="card" *ngIf="!durableFunction.value.closed">
+                <mat-card-content>
+                    id = {{durableFunction.value.id}}; <br/>
+                    message = {{durableFunction.value.message}}
+                    <button mat-icon-button (click)="closeClicked(durableFunction.value.id)" class="close" *ngIf="durableFunction.value.progress == 100">
+                        <mat-icon inline="true">close</mat-icon>
+                    </button>
+                    <app-spinner-button
+                        class="cancel"
+                        *ngIf="durableFunction.value.cancellable && durableFunction.value.progress != 100"
+                        [spinner]="durableFunction.value.cancelClicked"
+                        (click)="cancelClicked(durableFunction.value.id)">Cancel</app-spinner-button>
+                    <mat-progress-bar class="progress-bar" mode="determinate" value="{{durableFunction.value.progress}}"></mat-progress-bar>
+                </mat-card-content>
+            </mat-card>
+        </ng-container>
         <mat-card class="card" *ngFor="let message of messages">
             <mat-card-content>{{message}}</mat-card-content>
         </mat-card>

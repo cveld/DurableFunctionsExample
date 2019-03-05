@@ -1,0 +1,10 @@
+<button
+    class="spinner-button"
+    mat-raised-button
+    [color]="color"
+    [disabled]="disabled">
+        <mat-spinner *ngIf="spinner" diameter="18" color="primary"></mat-spinner>
+        <span [ngClass]="{'label': spinner}">
+           <ng-content></ng-content>
+        </span>
+</button>

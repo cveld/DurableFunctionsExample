@@ -9,6 +9,7 @@ export class ConfigurationService {
     }
     /// Initializes the configuration service with configuration returned by the given url
     public load(configurationUrl: string): Promise<any> {
+        // throw new Error('test the spinner');
         if (configurationUrl === undefined || configurationUrl === null) {
             throw new Error(`Argument cannot be null, argument name 'configurationUrl'.`);
         }

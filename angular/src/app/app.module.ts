@@ -1,6 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
@@ -54,6 +53,8 @@ import { AuthtesterComponent } from './authtester/authtester.component';
 import { LoginComponent } from './login/login.component';
 import { FlightsComponent } from './flights/flights.component';
 import { FanoutComponent } from './fanout/fanout.component';
+import { MyCanvasLayerDirective } from './my-map-layer/my-canvas-layer';
+import { SpinnerButtonComponent } from './spinner-button/spinner-button.component';
 
 @NgModule({
   declarations: [
@@ -63,8 +64,10 @@ import { FanoutComponent } from './fanout/fanout.component';
     LoginbarComponent,
     AuthtesterComponent,
     LoginComponent,
-    FlightsComponent,
     FanoutComponent
+    FlightsComponent,
+    MyCanvasLayerDirective,
+    SpinnerButtonComponent
   ],
   imports: [
     BrowserModule,
@@ -72,7 +75,7 @@ import { FanoutComponent } from './fanout/fanout.component';
     HttpClientModule,
     BrowserAnimationsModule,
     MatButtonModule, MatCheckboxModule, MatToolbarModule, MatIconModule, MatListModule, MatProgressBarModule,
-    MatSidenavModule, MatCardModule, MatSlideToggleModule,
+    MatSidenavModule, MatCardModule, MatSlideToggleModule, MatProgressSpinnerModule,
     FlexLayoutModule,
     ConfigurationModule,
     MapModule.forRoot()
