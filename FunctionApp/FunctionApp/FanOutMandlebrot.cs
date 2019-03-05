@@ -30,13 +30,13 @@ namespace FunctionApp
         {
             var outputs = new List<string>();
 
-            int maxIt = 1;
+            int maxIt = 3;
             var tasks = new Task<string>[maxIt];
             for (int i = 0; i < maxIt; i++)
             {
                 tasks[i] = context.CallActivityAsync<string>(
                     "GenerateImageFractalFan",
-                    new FractalInput() { name = $"MandleBrotImage_{i}", zoom = (double)i * 0.01});
+                    new FractalInput() { name = $"MandleBrotImage_{i}", zoom = (double)i * 1.0});
             }
 
             await Task.WhenAll(tasks);
@@ -93,15 +93,7 @@ namespace FunctionApp
                             [SignalR(HubName = "carlintveld")] IAsyncCollector<SignalRMessage> signalRMessages,
                             ILogger log)
         {
-            if (signalRMessages != null)
-            {
-                await signalRMessages.AddAsync(new SignalRMessage
-                {
-                    Target = "FanoutEvent",
-                    Arguments = new[] { "Broadcast" }
-                });
-                await signalRMessages.FlushAsync();
-            }
+            
             
             // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
             // Im = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
@@ -129,7 +121,17 @@ namespace FunctionApp
                 using (var image = surface.Snapshot())
                 {
                     SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-                    await CreateBlob($"run2/{input.name}.png", data);
+                    await CreateBlob($"run3/{input.name}.png", data);
+
+                    if (signalRMessages != null)
+                    {
+                        await signalRMessages.AddAsync(new SignalRMessage
+                        {
+                            Target = "FanoutEvent",
+                            Arguments = new[] { $"run3/{input.name}" }
+                        });
+                        await signalRMessages.FlushAsync();
+                    }
 
                     return $"Finished - {input.name}";
                 }
