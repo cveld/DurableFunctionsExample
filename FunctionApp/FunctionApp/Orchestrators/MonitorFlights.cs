@@ -36,7 +36,7 @@ namespace FunctionApp.Orchestrators
                 (next, time) = await context.CallActivityAsync<(int, long)>("SendFlightDataSignalRActivity", new SendFlightDataSignalRActivityInput { index = next, count = 20, allplanes = true });
                 takenSamples.Add((current, time));
                 var nextCheckpoint = context.CurrentUtcDateTime.AddMilliseconds(1050);
-                if (!context.IsReplaying) { log.LogInformation($"Next check for at {nextCheckpoint}."); }                
+                if (!context.IsReplaying) { log.LogInformation($"Next check for at {nextCheckpoint}."); } 
                 await context.CreateTimer(nextCheckpoint, CancellationToken.None);                
             }
             log.LogInformation($"Monitor expiring.");

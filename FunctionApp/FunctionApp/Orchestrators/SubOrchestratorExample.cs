@@ -13,30 +13,15 @@ namespace FunctionApp
         [FunctionName("SubOrchestratorExample")]
         public static async Task<SubOrchestratorExampleOutput> Run(
             [OrchestrationTrigger] DurableOrchestrationContextBase context)
-        {
-            Task<int> cancellationTask = context.WaitForExternalEvent<int>("CancelSequence");
+        {            
             var input = context.GetInput<SubOrchestratorExampleModel>();
-            var activity1 = context.CallActivityAsync<string>("E1_SayHello", input.Input);
-            Task winner = await Task.WhenAny(cancellationTask, activity1);
-
-            if (winner != cancellationTask) {
-                var activity2 = context.CallActivityAsync<string>(
+            var activity1 = await context.CallActivityAsync<string>("E1_SayHello", input.Input);
+            var activity2 = await context.CallActivityAsync<string>(
                         "SendSignalRMessageActivity",
-                        new SignalRDto { id = context.ParentInstanceId, message = input.Input, progress = input.Progress });                                   
-                winner = await Task.WhenAny(cancellationTask, activity2);
-            }               
-            
-            if (winner == cancellationTask)
-            {
-                return new SubOrchestratorExampleOutput
-                {
-                    Canceled = true
-                };
-            }        
-
+                        new SignalRDto { id = context.ParentInstanceId, message = input.Input, progress = input.Progress });                                                   
             return new SubOrchestratorExampleOutput
             {
-                Message = activity1.Result,
+                Message = activity1,
                 Canceled = false
             };
         }
