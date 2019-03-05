@@ -2,6 +2,7 @@
     "IsEncrypted": false,
     "Values": {
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "AzureStorageConnectionString": "UseDevelopmentStorage=true",
         "AzureSignalRConnectionString": "<your Azure SignalR Service Connectionstring",
         "FunctionsAppCode": "<your functions authorization code>",
         "BingApiKey": "<your Bing Api Key>",

@@ -19,6 +19,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading;
 
 namespace FunctionApp
 {
@@ -30,13 +31,16 @@ namespace FunctionApp
         {
             var outputs = new List<string>();
 
-            int maxIt = 3;
+            int maxIt = 10;
             var tasks = new Task<string>[maxIt];
             for (int i = 0; i < maxIt; i++)
             {
                 tasks[i] = context.CallActivityAsync<string>(
                     "GenerateImageFractalFan",
-                    new FractalInput() { name = $"MandleBrotImage_{i}", zoom = (double)i * 1.0});
+                    new FractalInput() { imageIndex = i, name = $"MandleBrotImage_{i}", zoom = 0.1 + (double)i * 0.1});
+                if (!context.IsReplaying) {
+                    Thread.Sleep(5);
+                }
             }
 
             await Task.WhenAll(tasks);
@@ -98,6 +102,18 @@ namespace FunctionApp
             // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
             // Im = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
             FractalInit initdata = InitData(0, 0, input.zoom);
+
+            //initdata = new FractalInit
+            //{
+            //    height = 800,
+            //    maxIterations = 128,
+            //    width = 800,
+            //    xMax = 1,
+            //    xMin = -3,
+            //    yMax = 2,
+            //    yMin = -2
+            //};
+
             // Create a surface.
             var info = new SKImageInfo(initdata.width, initdata.height);
 
@@ -128,7 +144,7 @@ namespace FunctionApp
                         await signalRMessages.AddAsync(new SignalRMessage
                         {
                             Target = "FanoutEvent",
-                            Arguments = new[] { $"run3/{input.name}" }
+                            Arguments = new object[] { input.imageIndex, $"run3/{input.name}" }
                         });
                         await signalRMessages.FlushAsync();
                     }
@@ -169,15 +185,15 @@ namespace FunctionApp
         {
             // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
             // Im = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
-            x = 1.0;// 1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995;
-            y = 1.0;//0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995;
+            x = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995;
+            y = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995;
             //x = 2;
             //y = 2;
-            double x_min = x * -zoom;
-            double x_max = x * zoom;
+            double x_min = x - zoom;
+            double x_max = x + zoom;
 
-            double y_min = y * -zoom;
-            double y_max = y * zoom;
+            double y_min = y - zoom;
+            double y_max = y + zoom;
             return new FractalInit
             {
                 height = 800,
@@ -192,6 +208,7 @@ namespace FunctionApp
 
         public class FractalInput
         {
+            public int imageIndex { get; set; }
             public double zoom { get; set; }
             public string name { get; set; }
         }

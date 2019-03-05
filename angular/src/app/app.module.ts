@@ -64,7 +64,7 @@ import { SpinnerButtonComponent } from './spinner-button/spinner-button.componen
     LoginbarComponent,
     AuthtesterComponent,
     LoginComponent,
-    FanoutComponent
+    FanoutComponent,
     FlightsComponent,
     MyCanvasLayerDirective,
     SpinnerButtonComponent

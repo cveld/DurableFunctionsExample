@@ -5,7 +5,7 @@ import { SignalrinfoService, EasyAuthService } from '../shared';
 import { Subscription } from 'rxjs';
 import { MyCanvasLayerDirective } from '../my-map-layer/my-canvas-layer';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationService } from '../lib/Configuration';
 
 @Component({
     selector: 'app-flights',

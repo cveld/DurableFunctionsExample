@@ -5,34 +5,19 @@
               <h3>Fractal fan out!</h3>
           </mat-card-title>
           <mat-card-content class="my-card-content">
-
-                  <mat-slide-toggle
-                      class="toggle-margin"
-                      color="primary"
-                      (change)="onSlideToggleChange($event)"
-                      [checked]="showTokens">
-                      Show token
-                  </mat-slide-toggle>
-
-              <button mat-raised-button color="primary" (click)="startClicked()">Start</button>
-              <button mat-raised-button color="primary" (click)="getMeData()">Get Me data</button>
-              <button mat-raised-button color="primary" (click)="authTesterClicked()">Auth tester</button>
+            <button mat-raised-button color="primary" (click)="startClicked()">Start fractal fan-out</button>
           </mat-card-content>
       </mat-card>
-      <mat-card class="card" *ngIf="showTokens">
-          <mat-card-content>
-              {{easyAuth.authToken}}
-          </mat-card-content>
+
+      <mat-card *ngIf="imageKeys.length > 0">
+          Frame {{imageIndex}}
+          <img src={{messages.get(imageKeys[imageIndex]).url}} />
       </mat-card>
-      <mat-card *ngIf="messages.length > 0;">
-          Loop Test
-          <img src={{messages[imageIndex].url}} />
-      </mat-card>
-      <mat-card class="card" *ngFor="let message of messages">
+      <!-- <mat-card class="card" *ngFor="let message of messages">
           <mat-card-content>
               <img src={{message.url}} width="30%" height="30%" />
               <p>{{message.text | json}}</p>
           </mat-card-content>
-      </mat-card>
+      </mat-card> -->
   </div>
 </div>

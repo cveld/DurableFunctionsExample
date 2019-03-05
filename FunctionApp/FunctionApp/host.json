@@ -10,5 +10,10 @@
             // Default settings, e.g. for host
             "default": "Trace"
         }
+    },
+    "extensions": {
+        "durableTask": {
+            "MaxConcurrentActivityFunctions": 5
+        }         
     }
 }
