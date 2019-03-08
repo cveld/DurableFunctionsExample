@@ -136,8 +136,8 @@ namespace FunctionApp
             {
                 Console.WriteLine("overflow");
             }
-            Color c1 = getColor(s1, maxiterations);
-            Color c2 = getColor(s2, maxiterations);
+            Color c1 = getColorHsl(s1, maxiterations);
+            Color c2 = getColorHsl(s2, maxiterations);
 
             if (c2.r == 0 && c2.g == 0 && c2.b == 0)
             {
@@ -202,7 +202,8 @@ namespace FunctionApp
                     (var n, var factor) = this.iterate2(0, 0, t * this.xScale + this.xMin, e * this.yScale + this.yMin, this.maxIterations);
 
                     // Color c = this.getColor(n, this.maxIterations);
-                    Color c = this.InterpolateColors(n-1, n, maxIterations, factor);
+
+                    Color c = n == maxIterations ? Color.FromDouble(0, 0, 0) : this.InterpolateColors(n-1, n, maxIterations, factor);
                         
                     this.updatePixel(this.coord2Index(t, e), c.r, c.g, c.b);
                     
@@ -211,6 +212,32 @@ namespace FunctionApp
             //return Uint8ClampedArray.from(this.pixels);
             return this.pixels;
         }
+
+        Color getColorHsl(int iteration, double maxiterations) {
+            double h = iteration / maxiterations;
+            const double s = 1;
+            const double l = .5;
+
+        double r, g, b;
+
+        Func<double, double, double, double> hue2rgb = (a, c, t) => {
+          if (t< 0) { t += 1.0; }
+          if (t > 1.0) { t -= 1.0; }
+          if (t< 1.0 / 6.0) { return a + (c - a) * 6.0 * t; }
+          if (t< 1.0 / 2.0) { return c; }
+          if (t< 2.0 / 3.0) { return a + (c - a) * (2.0 / 3.0 - t) * 6.0; }
+          return a;
+        };
+
+        var q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1.0 / 3.0);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1.0 / 3.0);        
+
+        return Color.FromDouble(r * 255.0, g * 255.0, b * 255.0);
+  }
+
         Color getColor(int iteration, double maxiterations)
         {
             if (iteration >= maxIterations)

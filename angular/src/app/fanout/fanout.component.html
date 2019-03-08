@@ -10,8 +10,11 @@
       </mat-card>
 
       <mat-card *ngIf="imageKeys.length > 0">
-          Frame {{imageIndex}}
+
           <img src={{messages.get(imageKeys[imageIndex]).url}} />
+          <div>
+            Frame {{imageIndex}}
+          </div>
       </mat-card>
       <!-- <mat-card class="card" *ngFor="let message of messages">
           <mat-card-content>

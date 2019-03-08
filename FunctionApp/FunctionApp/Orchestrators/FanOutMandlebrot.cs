@@ -31,13 +31,18 @@ namespace FunctionApp
         {
             var outputs = new List<string>();
 
-            int maxIt = 10;
+            const double speed = 4;
+            const double startzoom = 2;
+
+            int maxIt = 40;
             var tasks = new Task<string>[maxIt];
             for (int i = 0; i < maxIt; i++)
             {
                 tasks[i] = context.CallActivityAsync<string>(
                     "GenerateImageFractalFan",
-                    new FractalInput() { imageIndex = i, name = $"MandleBrotImage_{i}", zoom = 0.1 + (double)i * 0.1});
+                    new FractalInput() { imageIndex = i, name = $"MandleBrotImage_{i}",
+                        zoom = startzoom * Math.Pow((speed - 1.0) / speed, i)
+                    });
                 if (!context.IsReplaying) {
                     Thread.Sleep(5);
                 }
@@ -96,23 +101,8 @@ namespace FunctionApp
                             FractalInput input,
                             [SignalR(HubName = "carlintveld")] IAsyncCollector<SignalRMessage> signalRMessages,
                             ILogger log)
-        {
-            
-            
-            // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
-            // Im = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
-            FractalInit initdata = InitData(0, 0, input.zoom);
-
-            //initdata = new FractalInit
-            //{
-            //    height = 800,
-            //    maxIterations = 128,
-            //    width = 800,
-            //    xMax = 1,
-            //    xMin = -3,
-            //    yMax = 2,
-            //    yMin = -2
-            //};
+        {                                  
+            FractalInit initdata = InitData(0, 0, input.zoom);            
 
             // Create a surface.
             var info = new SKImageInfo(initdata.width, initdata.height);
@@ -183,10 +173,24 @@ namespace FunctionApp
 
        static public FractalInit InitData(double x, double y, double zoom)
         {
-            // Re = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995
-            // Im = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995
-            x = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995;
-            y = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995;
+            // source: https://www.youtube.com/watch?v=rDas5KThkUM
+            // x = 0.250004192545193613127858564129342013402481966322603088153880158130118342411377044460335903569109029974830577473040521791862202620804388057367031844851715;
+            // y = 0.0000000136723440278498956363855799786211940098275946182822890638711641266657225239686535941616043103142296320806428032888628485431058181507295587901452113878999;
+
+            // source: <some other YouTube video>
+            // x = -1.74995768370609350360221450607069970727110579726252077930242837820286008082972804887218672784431700831100544507655659531379747541999999995;
+            // y = 0.00000000000000000278793706563379402178294753790944364927085054500163081379043930650189386849765202169477470552201325772332454726999999995;
+            // source: https://github.com/lelandbatey/rust_mandelbrot/blob/master/src/main.rs
+            // x = -0.74;
+            // y = 0.0;
+
+            // Playing 1:
+            // x = -1.0771875;
+            // y = -0.5267187499999999;
+            // Playing 2:
+            x = -0.9935419701538165;
+            y = -0.3001399435157446;
+
             //x = 2;
             //y = 2;
             double x_min = x - zoom;
@@ -197,7 +201,7 @@ namespace FunctionApp
             return new FractalInit
             {
                 height = 800,
-                maxIterations = 128,
+                maxIterations = 100,
                 width = 800,
                 xMax = x_max,
                 xMin = x_min,

@@ -44,7 +44,7 @@ export class FanoutComponent implements OnInit, OnDestroy {
     this.baseurl = this.configuration.getValue('functionsApp');
     this.subscriptions.push(this.signalrinfoService.fanout$.subscribe((...data) => this.handleFractalImage(...data)));
 
-    this.subscriptions.push(interval(1000).subscribe(x => {
+    this.subscriptions.push(interval(100).subscribe(x => {
       this.nextFrame();
     }));
   }
