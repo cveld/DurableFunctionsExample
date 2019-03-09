@@ -9,7 +9,7 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         // Cloud:
         // "FunctionsApp": "https://<yourfunctionsapp>.azurewebsites.net",
-        // "StorageBaseUri": "https://<yourstorageaccount>.blob.core.windows.net/Mandelbrot",
+        // "StorageBaseUri": "https://<yourstorageaccount>.blob.core.windows.net/mandelbrot",
         // "AuthEnabled": true
 
         // Local settings:
