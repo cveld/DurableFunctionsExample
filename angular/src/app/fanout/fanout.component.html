@@ -16,11 +16,14 @@
       </mat-card>
 
       <mat-card *ngIf="imageKeys.length > 0">
-
-          <img src={{images.get(imageKeys[imageIndex]).url}} />
-          <div>
-            Frame {{imageIndex}} / {{imageKeys.length}}
-          </div>
+            <ng-container *ngFor="let key of imageKeys; let i = index">
+                <img [style.display]="i === imageIndicesLoaded[imageIndex] && images.get(key).loaded ? 'block' : 'none'" src="{{images.get(key).url}}" (load)="onImageLoad(key)" />
+            </ng-container>
+          <!-- <img src={{images.get(imageKeys[imageIndex]).url}} /> -->
+          <p>
+            Frame {{imageIndex + 1}} / {{imageIndicesLoaded.length}}
+            <ng-container *ngIf="imageKeys.length !== imageIndicesLoaded.length">(images being loaded: {{imageKeys.length - imageIndicesLoaded.length}})</ng-container>
+          </p>
       </mat-card>
 
 

@@ -17,7 +17,8 @@ interface IOrchestratorResult {
 class ImageContainer {
     public url: string;
     public text: string;
-    public finished: boolean;
+    public finished = false;
+    public loaded = false;
 }
 
 
@@ -40,6 +41,7 @@ export class FanoutComponent implements OnInit, OnDestroy {
     images: Map<number, ImageContainer> = new Map<number, ImageContainer>();
     imageIndex: number;
     imageKeys: Array<number> = new Array<number>();
+    imageIndicesLoaded: Array<number> = new Array<number>();
     generatingCount = 0;
     totalFrames = 0;
     generatingStarted = false;
@@ -50,7 +52,7 @@ export class FanoutComponent implements OnInit, OnDestroy {
         this.baseurl = this.configuration.getValue('functionsApp');
         this.subscriptions.push(this.signalrinfoService.fanout$.subscribe((...data) => this.handleFractalImage(...data)));
 
-        this.subscriptions.push(interval(100).subscribe(x => {
+        this.subscriptions.push(interval(50).subscribe(x => {
         this.nextFrame();
         }));
     }
@@ -65,6 +67,20 @@ export class FanoutComponent implements OnInit, OnDestroy {
         return counter;
     }
 
+    displayImage(key: number, index: number) {
+        const img = this.images.get(key);
+
+        // If image is loaded and it is the image to be rendered, then return true
+        if (img.loaded && index === this.imageIndex) {
+            return true;
+        }
+
+        // If image is loadded and it is not the image to be rendered, then return false
+        if (index !== this.imageIndex) {
+            return false;
+        }
+    }
+
     handleFractalImage(data) {
         const phase = data[0]; // started | finished
         const imageIndex = data[1];
@@ -75,6 +91,7 @@ export class FanoutComponent implements OnInit, OnDestroy {
         container.url = `${storageBaseUri}/${name}.png`;
         container.finished = phase === 'finished';
         this.images.set(imageIndex, container);
+        // const img = new Image();
 
         if (container.finished) {
             this.imageKeys = Array.from(this.images.keys()).sort((a, b) => {
@@ -85,17 +102,29 @@ export class FanoutComponent implements OnInit, OnDestroy {
                     return 1;
                 }
                 return 0;
-            }).filter((index) => {
-                return this.images.get(index).finished;
+            }).filter((key) => {
+                return this.images.get(key).finished;
             });
         }
+
+        this.refreshImagesLoaded();
 
         this.generatingCount = this.countQueuedFrames();
     }
 
-  ngOnDestroy() {
-      this.subscriptions.forEach((value) => value.unsubscribe());
-  }
+    refreshImagesLoaded() {
+        this.imageIndicesLoaded = this.imageKeys.reduce((result, key, index) =>
+        [...result, ...this.images.get(key).loaded ? [index] : []], []);
+    }
+
+    onImageLoad(key: number) {
+        this.images.get(key).loaded = true;
+        this.refreshImagesLoaded();
+    }
+
+    ngOnDestroy() {
+        this.subscriptions.forEach((value) => value.unsubscribe());
+    }
 
     startClicked() {
         this.clickedCount++;
@@ -114,7 +143,7 @@ export class FanoutComponent implements OnInit, OnDestroy {
 
 
     this.imageIndex++;
-    if ( this.imageIndex >= this.imageKeys.length) {
+    if ( this.imageIndex >= this.imageIndicesLoaded.length) {
         this.imageIndex = 0;
     }
   }
