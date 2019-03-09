@@ -20,6 +20,7 @@ using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace FunctionApp
 {
@@ -40,18 +41,18 @@ namespace FunctionApp
             {
                 tasks[i] = context.CallActivityAsync<string>(
                     "GenerateImageFractalFan",
-                    new FractalInput() { imageIndex = i, name = $"MandleBrotImage_{i}",
+                    new FractalInput() {
+                        instance = context.InstanceId,
+                        imageIndex = i,
+                        name = $"MandleBrotImage_{i}",
                         zoom = startzoom * Math.Pow((speed - 1.0) / speed, i)
-                    });
-                if (!context.IsReplaying) {
-                    Thread.Sleep(5);
-                }
+                    });                
             }
 
             await Task.WhenAll(tasks);
             var test = tasks.Select(t => t.Result).ToList();
 
-            // Generate video
+            // Generate video: awaiting your pull request; greatly appreciated :-D
             await context.CallActivityAsync<string>("GenerateVideoFromImages", "video1");
         
             return test;
@@ -91,55 +92,81 @@ namespace FunctionApp
         {
             var body = await req.Content.ReadAsStringAsync();
             var input = JsonConvert.DeserializeObject<FractalInput>(body);
-            await GenerateImageFractal(input, null, log);
+            await GenerateImageFractalFan(input, null, log);
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         }
 
         [FunctionName("GenerateImageFractalFan")]
-        public static async Task<string> GenerateImageFractal(
+        public static async Task<string> GenerateImageFractalFan(
                             [ActivityTrigger]
                             FractalInput input,
                             [SignalR(HubName = "carlintveld")] IAsyncCollector<SignalRMessage> signalRMessages,
                             ILogger log)
-        {                                  
-            FractalInit initdata = InitData(0, 0, input.zoom);            
+        {
+            if (signalRMessages != null)
+            {
+                await signalRMessages.AddAsync(new SignalRMessage
+                {
+                    Target = "FanoutEvent",
+                    Arguments = new object[] { "started", input.imageIndex, $"{input.instance}/{input.name}" }
+                });
+                await signalRMessages.FlushAsync();
+            }
+
+            SKData data = CreateFractalImageData(input);
+            await CreateBlob($"{input.instance}/{input.name}.png", data);
+
+            if (signalRMessages != null)
+            {
+                await signalRMessages.AddAsync(new SignalRMessage
+                {
+                    Target = "FanoutEvent",
+                    Arguments = new object[] { "finished", input.imageIndex, $"{input.instance}/{input.name}" }
+                });
+                await signalRMessages.FlushAsync();
+            }
+
+            return $"Finished - {input.name}";                           
+        }
+
+        private static SKData CreateFractalImageData(FractalInput input)
+        {
+            FractalInit initdata = InitData(0, 0, input.zoom);
 
             // Create a surface.
-            var info = new SKImageInfo(initdata.width, initdata.height);
+            var info = new SKImageInfo(initdata.width, initdata.height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
 
-            using (var surface = SKSurface.Create(info))
+            //using (var surface = SKSurface.Create(info))
             {
                 var mandelbrot = new FractalMandelbrot(initdata);
                 var bytes = mandelbrot.compute();
 
                 // the the canvas and properties
-                var canvas = surface.Canvas;
+                //var canvas = surface.Canvas;
 
-                for (int y = 0; y < initdata.height; y++)
-                {
-                    for (int x = 0; x < initdata.width; x++)
-                    {
-                        int index = 4 * (x + y * initdata.width);
-                        canvas.DrawPoint(new SKPoint(x, y), new SKColor(bytes[index], bytes[index + 1], bytes[index + 2]));
-                    }
-                }
+                //for (int y = 0; y < initdata.height; y++)
+                //{
+                //    for (int x = 0; x < initdata.width; x++)
+                //    {
+                //        int index = 4 * (x + y * initdata.width);
+                //        canvas.DrawPoint(new SKPoint(x, y), new SKColor(bytes[index], bytes[index + 1], bytes[index + 2]));
+                //    }
+                //}
+
+                // Optimization taken from https://github.com/mono/SkiaSharp/issues/416
+                // create an empty bitmap
+                var bitmap = new SKBitmap();
+                // pin the managed array so that the GC doesn't move it
+                var gcHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+                // install the pixels with the color type of the pixel data                
+                bitmap.InstallPixels(info, gcHandle.AddrOfPinnedObject(), info.RowBytes, delegate { gcHandle.Free(); }, null);
                 
-                using (var image = surface.Snapshot())
+                //using (var image = surface.Snapshot())
+                using (var image = SKImage.FromBitmap(bitmap))
                 {
+                    
                     SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
-                    await CreateBlob($"run3/{input.name}.png", data);
-
-                    if (signalRMessages != null)
-                    {
-                        await signalRMessages.AddAsync(new SignalRMessage
-                        {
-                            Target = "FanoutEvent",
-                            Arguments = new object[] { input.imageIndex, $"run3/{input.name}" }
-                        });
-                        await signalRMessages.FlushAsync();
-                    }
-
-                    return $"Finished - {input.name}";
+                    return data;
                 }
             }
         }
@@ -158,9 +185,9 @@ namespace FunctionApp
 
             client = storageAccount.CreateCloudBlobClient();
 
-            container = client.GetContainerReference("testing123");
+            container = client.GetContainerReference("mandelbrot");
 
-            await container.CreateIfNotExistsAsync();
+            await container.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Blob, null, null);
 
             blob = container.GetBlockBlobReference(name);
             blob.Properties.ContentType = "image/png"; // could be application/octet-stream
@@ -215,6 +242,7 @@ namespace FunctionApp
             public int imageIndex { get; set; }
             public double zoom { get; set; }
             public string name { get; set; }
+            public string instance { get; set; }
         }
 
         [FunctionName("GetSequenceNumber")]

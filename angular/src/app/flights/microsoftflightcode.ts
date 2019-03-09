@@ -162,13 +162,17 @@ export class FlightManager {
         const globalStart = startTime;
 
         const animate = () => {
+            const currentFabricContext = this._fabric.getContext();
+            if (!currentFabricContext) {
+                return;
+            }
             if (startTime !== globalStart) {
                 return;
             }
             // while the user is dragging the canvas, the canvas css top and left is used to move the graphics.
             // we need to compensate our drawing for that:
-            const currentTop = this.strippx(this._fabric.getContext().canvas.style.top);
-            const currentLeft = this.strippx(this._fabric.getContext().canvas.style.left);
+            const currentTop = this.strippx(currentFabricContext.canvas.style.top);
+            const currentLeft = this.strippx(currentFabricContext.canvas.style.left);
 
             const curTime = new Date().getTime();
             const elapsedTime = curTime - startTime;

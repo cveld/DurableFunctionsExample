@@ -17,70 +17,98 @@ interface IOrchestratorResult {
 class ImageContainer {
     public url: string;
     public text: string;
+    public finished: boolean;
 }
 
 
 @Component({
-  selector: 'app-fanout',
-  templateUrl: './fanout.component.html',
-  styleUrls: ['./fanout.component.scss']
+    selector: 'app-fanout',
+    templateUrl: './fanout.component.html',
+    styleUrls: ['./fanout.component.scss']
 })
 export class FanoutComponent implements OnInit, OnDestroy {
-  baseurl: string;
-  orchestratorResult: IOrchestratorResult;
-  private subscriptions: Array<Subscription> = new Array<Subscription>();
-  messages: Map<number, ImageContainer> = new Map<number, ImageContainer>();
-  imageIndex: number;
-  imageKeys: Array<number> = new Array<number>();
 
-  constructor(
-    private easyAuth: EasyAuthService,
-    private configuration: ConfigurationService,
-    private http: HttpClient,
-    private signalrinfoService: SignalrinfoService) { }
+    constructor(
+        private easyAuth: EasyAuthService,
+        private configuration: ConfigurationService,
+        private http: HttpClient,
+        private signalrinfoService: SignalrinfoService) { }
 
-  ngOnInit() {
-    this.imageIndex = 0;
-    this.baseurl = this.configuration.getValue('functionsApp');
-    this.subscriptions.push(this.signalrinfoService.fanout$.subscribe((...data) => this.handleFractalImage(...data)));
+    baseurl: string;
+    orchestratorResult: IOrchestratorResult;
+    private subscriptions: Array<Subscription> = new Array<Subscription>();
+    images: Map<number, ImageContainer> = new Map<number, ImageContainer>();
+    imageIndex: number;
+    imageKeys: Array<number> = new Array<number>();
+    generatingCount = 0;
+    totalFrames = 0;
+    generatingStarted = false;
+    clickedCount = 0;
 
-    this.subscriptions.push(interval(100).subscribe(x => {
-      this.nextFrame();
-    }));
-  }
+    ngOnInit() {
+        this.imageIndex = 0;
+        this.baseurl = this.configuration.getValue('functionsApp');
+        this.subscriptions.push(this.signalrinfoService.fanout$.subscribe((...data) => this.handleFractalImage(...data)));
+
+        this.subscriptions.push(interval(100).subscribe(x => {
+        this.nextFrame();
+        }));
+    }
+
+    countQueuedFrames() {
+        let counter = 0;
+        this.images.forEach((container) => {
+            if (!container.finished) {
+                counter++;
+            }
+        });
+        return counter;
+    }
 
     handleFractalImage(data) {
-        const imageIndex = data[0];
-        const name = data[1];
+        const phase = data[0]; // started | finished
+        const imageIndex = data[1];
+        const name = data[2];
         const container = new ImageContainer();
         container.text = `Incoming: ${imageIndex}, ${name}`;
-        container.url = `https://mandelbrotstorage.blob.core.windows.net/testing123/${name}.png`;
-        container.url = `http://127.0.0.1:10000/devstoreaccount1/testing123/${name}.png`;
+        const storageBaseUri = this.configuration.getValue('storageBaseUri');
+        container.url = `${storageBaseUri}/${name}.png`;
+        container.finished = phase === 'finished';
+        this.images.set(imageIndex, container);
 
-        this.messages.set(imageIndex, container);
-        this.imageKeys = Array.from(this.messages.keys()).sort((a, b) => {
-            if (a < b) {
-                return -1;
-            }
-            if (a > b) {
-                return 1;
-            }
-            return 0;
-        });
-  }
+        if (container.finished) {
+            this.imageKeys = Array.from(this.images.keys()).sort((a, b) => {
+                if (a < b) {
+                    return -1;
+                }
+                if (a > b) {
+                    return 1;
+                }
+                return 0;
+            }).filter((index) => {
+                return this.images.get(index).finished;
+            });
+        }
+
+        this.generatingCount = this.countQueuedFrames();
+    }
 
   ngOnDestroy() {
       this.subscriptions.forEach((value) => value.unsubscribe());
   }
 
-  startClicked() {
-    this.http.get<IOrchestratorResult>(`${this.baseurl}/api/FanOutMandlebrot_HttpStart`).toPromise().then(data => {
-      this.orchestratorResult = data;
-    });
+    startClicked() {
+        this.clickedCount++;
+        this.http.get<IOrchestratorResult>(`${this.baseurl}/api/FanOutMandlebrot_HttpStart`).subscribe(data => {
+            this.orchestratorResult = data;
+            this.generatingStarted = true;
+        }, undefined, () => {
+            this.clickedCount--;
+        });
   }
 
   nextFrame(): void {
-    if (this.messages.size <= 0) {
+    if (this.images.size <= 0) {
       return;
     }
 

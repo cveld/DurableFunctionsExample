@@ -22,6 +22,9 @@ export class FlightsComponent implements OnInit {
         terminatePostUri: string,
         rewindPostUri: string
     };
+    startMonitorCounter = 0;
+    waitingForFlightsData = false;
+    stopMonitorCounter = 0;
 
     constructor(
         private signalrinfoService: SignalrinfoService,
@@ -56,6 +59,7 @@ export class FlightsComponent implements OnInit {
     }
 
     startMonitorClicked() {
+        this.startMonitorCounter++;
         const apiBaseUrl = this.configurationService.getValue('functionsApp');
         const authEnabled = this.configurationService.getValue('authEnabled') !== 'false';
         this.easyAuth.getAuthToken(authEnabled, authEnabled).then((token) => {
@@ -69,11 +73,15 @@ export class FlightsComponent implements OnInit {
                 'Skip': 0
             }).subscribe(data => {
                 this.monitorFunctionData = data;
+                this.waitingForFlightsData = true;
+            }, undefined, () => {
+                this.startMonitorCounter--;
             });
         });
     }
 
     stopMonitorClicked() {
+        this.stopMonitorCounter++;
         this.easyAuth.getAuthToken().then((token) => {
             const headers = new HttpHeaders({
                 'Content-Type': 'application/json',
@@ -83,11 +91,14 @@ export class FlightsComponent implements OnInit {
 
             const url = this.monitorFunctionData.terminatePostUri.replace('{text}', encodeURIComponent('terminated by user'));
             this.http.post<any>(url, null).subscribe(data => {
+            }, undefined, () => {
+                this.stopMonitorCounter--;
             });
         });
     }
 
     handleFlights(data) {
+        this.waitingForFlightsData = false;
         if (!this.mycanvaslayer.flightManager) {
             console.log('flightManager not yet initialized; incoming data will not be processed');
             return;
