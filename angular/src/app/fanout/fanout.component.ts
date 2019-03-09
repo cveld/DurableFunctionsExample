@@ -91,21 +91,18 @@ export class FanoutComponent implements OnInit, OnDestroy {
         container.url = `${storageBaseUri}/${name}.png`;
         container.finished = phase === 'finished';
         this.images.set(imageIndex, container);
-        // const img = new Image();
 
-        if (container.finished) {
-            this.imageKeys = Array.from(this.images.keys()).sort((a, b) => {
-                if (a < b) {
-                    return -1;
-                }
-                if (a > b) {
-                    return 1;
-                }
-                return 0;
-            }).filter((key) => {
-                return this.images.get(key).finished;
-            });
-        }
+        this.imageKeys = Array.from(this.images.keys()).sort((a, b) => {
+            if (a < b) {
+                return -1;
+            }
+            if (a > b) {
+                return 1;
+            }
+            return 0;
+        }).filter((key) => {
+            return this.images.get(key).finished;
+        });
 
         this.refreshImagesLoaded();
 
