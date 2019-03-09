@@ -19,15 +19,13 @@ namespace FunctionApp1
             [OrchestrationTrigger] DurableOrchestrationContextBase context)
         {            
             var outputs = new List<string>();
-            //context.GetInput();
-            Task activity = context.CallActivityAsync("SignalRAddUserToGroup", null);                 
-            outputs.Add(await context.CallActivityAsync<string>("E1_SayHello", "Seattle"));
-            await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDto { id = context.InstanceId, message = "Tokyo", progress = 20 });        
+            //context.GetInput();                       
+            outputs.Add(await context.CallActivityAsync<string>("E1_SayHello", "Seattle"));            
             outputs.Add(await context.CallActivityAsync<string>("E1_SayHello", "Utrecht"));
             outputs.Add(await context.CallActivityAsync<string>("E1_SayHello", "Future Tech"));
-
-            // returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
+            
             await context.CallActivityAsync<string>("SendSignalRMessageActivity", new SignalRDto { id = context.InstanceId, message = $"Result: {String.Join(" ", outputs)}", progress = 100 });
+
             return outputs;
         }
 
@@ -48,7 +46,6 @@ namespace FunctionApp1
                 Progress = 20                
             });
             Task winner = await Task.WhenAny(cancellationTask, step1);
-
             if (winner == cancellationTask)
             {
                 var x = cancellationTask.Result;

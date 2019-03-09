@@ -66,9 +66,9 @@ namespace FunctionApp
         }
         void updatePixel(int index, byte r, byte g, byte b, byte a = 255)
         {
-            this.pixels[index] = r;
+            this.pixels[index] = b;
             this.pixels[index + 1] = g;
-            this.pixels[index + 2] = b;
+            this.pixels[index + 2] = r;
             this.pixels[index + 3] = a;
         }
         int coord2Index(int x, int y)

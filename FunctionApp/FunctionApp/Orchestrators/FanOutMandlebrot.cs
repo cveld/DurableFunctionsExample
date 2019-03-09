@@ -149,7 +149,7 @@ namespace FunctionApp
                 //    for (int x = 0; x < initdata.width; x++)
                 //    {
                 //        int index = 4 * (x + y * initdata.width);
-                //        canvas.DrawPoint(new SKPoint(x, y), new SKColor(bytes[index], bytes[index + 1], bytes[index + 2]));
+                //        canvas.DrawPoint(new SKPoint(x, y), new SKColor(bytes[index + 2], bytes[index + 1], bytes[index]));
                 //    }
                 //}
 
