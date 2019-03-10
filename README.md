@@ -8,3 +8,10 @@ The demo entails a full-fledged responsive web app that integrates with an Azure
 * Angular
 * Responsive web design
 * Google Material
+
+# Demo: Cancellable long-running workflow
+
+# Demo: Monitoring of a Flights Data API
+
+# Demo: Cloud-scale fractal processor
+
