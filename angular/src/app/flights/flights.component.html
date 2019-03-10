@@ -1,8 +1,8 @@
 <div class="full-screen-outer">
     <div>
         <div class="floating">
-            <button mat-raised-button color="primary" (click)="startMonitorClicked()">Start</button>
-            <button mat-raised-button color="primary" (click)="stopMonitorClicked()">Stop</button>
+            <app-spinner-button (click)="startMonitorClicked()" [spinner]="startMonitorCounter > 0 || waitingForFlightsData">Start</app-spinner-button>
+            <app-spinner-button (click)="stopMonitorClicked()" [spinner]="stopMonitorCounter > 0">Stop</app-spinner-button>
         </div>
     </div>
     <x-map #xmap [Options]="_options" [Box]="_box" class="full-height">

@@ -23,7 +23,8 @@ namespace FunctionApp1
                     FunctionsApp = System.Environment.GetEnvironmentVariable("FunctionsApp", EnvironmentVariableTarget.Process),
                     FunctionsAppCode = System.Environment.GetEnvironmentVariable("FunctionsAppCode", EnvironmentVariableTarget.Process),
                     BingApiKey = System.Environment.GetEnvironmentVariable("BingApiKey", EnvironmentVariableTarget.Process),
-                    AuthEnabled = System.Environment.GetEnvironmentVariable("AuthEnabled", EnvironmentVariableTarget.Process)
+                    AuthEnabled = System.Environment.GetEnvironmentVariable("AuthEnabled", EnvironmentVariableTarget.Process),
+                    StorageBaseUri = Environment.GetEnvironmentVariable("StorageBaseUri", EnvironmentVariableTarget.Process)
                 }
             );
         }

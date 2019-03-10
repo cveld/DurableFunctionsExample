@@ -40,8 +40,6 @@ namespace FunctionApp
                 var mandelbrot = new FractalMandelbrot(initdata);
                 var bytes = mandelbrot.compute();
 
-
-
                 // the the canvas and properties
                 var canvas = surface.Canvas;
 
@@ -65,66 +63,6 @@ namespace FunctionApp
                 }
             }
         }
-
-
-
-
-
-
-
-        //    function generateImage(context, imageData, width, height)
-        //    {
-        //        context.log('inside generate');
-        //        //const image2 = new Jimp({ data: imageData, width: width, height: height });
-        //        //return image2;
-
-        //        const image = new Jimp(width, height, '#FF00FF');
-        //        //image.setPixelColor(Jimp.rgbaToInt(200,0,0,255), 5, 5);
-        //        //return image;
-
-        //        for (let y = 0; y < height; y++)
-        //        {
-        //            context.log(y);
-        //            for (let x = 0; x < width; x++)
-        //            {
-        //                let index = 4 * (x + y * width);
-        //                try
-        //                {
-        //                    let color = Jimp.rgbaToInt(cap255(imageData[index]), cap255(imageData[index + 1]), cap255(imageData[index + 2]), cap255(imageData[index + 3]));
-        //                    image.setPixelColor(color, x, y);
-        //                }
-        //                catch (ex)
-        //                {
-        //                    context.log(x, y, index, imageData[index], imageData[index + 1], imageData[index + 2], imageData[index + 3])
-        //                    throw ex;
-        //                }
-        //            }
-        //        }
-
-        //        return image;
-
-
-        //        new Jimp(width, height, '#FF00FF', function(err, image) {
-        //        if (err) throw err;
-        //        result = image;
-        //        _mycontext.log('test');
-        //        image.setPixelColor(Jimp.rgbaToInt(200, 0, 0, 255), 5, 5);
-        //        return;
-
-        //        for (let y = 0; y < height; y++)
-        //        {
-        //            for (let x = 0; x < width; x++)
-        //            {
-        //                let index = 4 * (x + y * width);
-        //                let color = Jimp.rgbaToInt(imageData[index], imageData[index + 1], imageData[index + 2], imageData[index + 3]);
-        //                image.setPixelColor(color, x, y);
-        //            }
-        //        }
-
-        //        //return image;
-        //    }); // new Jimp
-        //    return result;
-        //}
 
         [FunctionName("GenerateImageBasic")]
         public static HttpResponseMessage GenerateImageBasic(

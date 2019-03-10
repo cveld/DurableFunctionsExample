@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EasyAuthService } from '../shared';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationService } from '../lib/Configuration';
 import { MatSlideToggleChange } from '@angular/material';
 
 @Component({

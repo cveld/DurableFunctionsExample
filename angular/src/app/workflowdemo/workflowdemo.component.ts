@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SignalrinfoService, EasyAuthService } from '../shared';
 import { Subscription } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ConfigurationService } from '../lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationService } from '../lib/Configuration';
 import { MatSlideToggleChange } from '@angular/material';
 
 class DurableFunctionsMapEntity {

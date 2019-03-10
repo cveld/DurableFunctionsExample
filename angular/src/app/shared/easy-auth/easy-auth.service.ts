@@ -1,6 +1,6 @@
 import { Injectable, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { ConfigurationService } from 'src/app/lib/Uwv.eDv.Angular.Configuration';
+import { ConfigurationService } from '../../lib/Configuration';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TokenService } from '../token/token.service';
 import { tap, map } from 'rxjs/operators';

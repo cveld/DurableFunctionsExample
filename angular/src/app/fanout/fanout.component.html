@@ -1,0 +1,38 @@
+<div class="container">
+  <div fxLayout="row" fxLayoutGap="20px" fxLayoutAlign="space-around center" class="content" fxLayout="column">
+      <mat-card class="card">
+          <mat-card-title fxLayout.gt-xs="row" fxLayout.xs="column">
+              <h3>Fractal fan out!</h3>
+          </mat-card-title>
+          <mat-card-content class="my-card-content">
+                <app-spinner-button (click)="startClicked()" [spinner]="clickedCount > 0">Start fractal fan-out</app-spinner-button>
+                <p *ngIf="imageKeys.length === 0 && generatingStarted">
+                        Started. Waiting for results.
+                </p>
+                <p *ngIf="generatingCount > 0">
+                        {{generatingCount}} frames queued in parallel to be generated
+                </p>
+          </mat-card-content>
+      </mat-card>
+
+      <mat-card *ngIf="imageKeys.length > 0">
+            <ng-container *ngFor="let key of imageKeys; let i = index">
+                <img [style.display]="i === imageIndicesLoaded[imageIndex] && images.get(key).loaded ? 'block' : 'none'" src="{{images.get(key).url}}" (load)="onImageLoad(key)" />
+            </ng-container>
+          <!-- <img src={{images.get(imageKeys[imageIndex]).url}} /> -->
+          <p>
+            <ng-container *ngIf="imageIndicesLoaded.length > 0">Frame {{imageIndex + 1}} / {{imageIndicesLoaded.length}} </ng-container>
+            <ng-container *ngIf="imageKeys.length !== imageIndicesLoaded.length">(images being loaded: {{imageKeys.length - imageIndicesLoaded.length}})</ng-container>
+          </p>
+      </mat-card>
+
+
+
+      <!-- <mat-card class="card" *ngFor="let message of messages">
+          <mat-card-content>
+              <img src={{message.url}} width="30%" height="30%" />
+              <p>{{message.text | json}}</p>
+          </mat-card-content>
+      </mat-card> -->
+    </div>
+</div>

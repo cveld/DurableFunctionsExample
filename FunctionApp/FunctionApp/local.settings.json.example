@@ -2,16 +2,19 @@
     "IsEncrypted": false,
     "Values": {
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "AzureStorageConnectionString": "UseDevelopmentStorage=true",
         "AzureSignalRConnectionString": "<your Azure SignalR Service Connectionstring",
         "FunctionsAppCode": "<your functions authorization code>",
         "BingApiKey": "<your Bing Api Key>",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
         // Cloud:
         // "FunctionsApp": "https://<yourfunctionsapp>.azurewebsites.net",
+        // "StorageBaseUri": "https://<yourstorageaccount>.blob.core.windows.net/mandelbrot",
         // "AuthEnabled": true
 
         // Local settings:
         "FunctionsApp": "http://localhost:7071",
+        "StorageBaseUri": "http://127.0.0.1:10000/devstoreaccount1/mandelbrot",
         "AuthEnabled": false
     },
     "Host": {
