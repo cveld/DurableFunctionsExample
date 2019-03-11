@@ -19,8 +19,8 @@ The demo entails a full-fledged responsive web app that integrates with an Azure
 ![image](https://user-images.githubusercontent.com/6196260/54161349-2927ec00-4452-11e9-8bc7-f787039e1ef5.png)
 
 # References
-https://docs.microsoft.com/azure/azure-functions/durable/durable-functions-overview
-Jeff Hollan @ .NET Conf 2018 https://channel9.msdn.com/Events/dotnetConf/2018/S204
+* https://docs.microsoft.com/azure/azure-functions/durable/durable-functions-overview
+* Jeff Hollan @ .NET Conf 2018; https://channel9.msdn.com/Events/dotnetConf/2018/S204
 
 # Security
 A note on security: in the demo's current version the durable function secret code is shared with the single page application. This is generally not a good idea as the secret code grants access to all durable functions. This design needs to be revisited and only the orchestrator id or a derivate should be shared.
