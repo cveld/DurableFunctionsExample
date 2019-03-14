@@ -32,10 +32,10 @@ namespace FunctionApp
         {
             var outputs = new List<string>();
 
-            const double speed = 4;
+            const double speed = 20;
             const double startzoom = 2;
 
-            int maxIt = 40;
+            int maxIt = 200;
             var tasks = new Task<string>[maxIt];
             for (int i = 0; i < maxIt; i++)
             {

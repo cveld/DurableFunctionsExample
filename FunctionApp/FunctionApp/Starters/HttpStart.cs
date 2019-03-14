@@ -24,11 +24,6 @@ namespace FunctionApp
             string functionName,
             ILogger log, ClaimsPrincipal claimsPrincipal)
         {
-            dynamic stuff = JsonConvert.DeserializeObject("{ 'Name': 'Jon Smith', 'Address': { 'City': 'New York', 'State': 'NY' }, 'Age': 42 }");
-
-            string name = stuff.Name;
-            string address = stuff.Address.City;
-
             // Function input comes from the request content.
             var str = await req.Content.ReadAsStringAsync();
             dynamic eventData = JsonConvert.DeserializeObject(str); // await req.Content.ReadAsAsync<object>();

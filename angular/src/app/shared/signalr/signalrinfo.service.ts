@@ -87,22 +87,22 @@ export class SignalrinfoService implements OnDestroy {
                     return data1.accessToken;
                 });
             }
-    };
-    const connection = new HubConnectionBuilder()
-        .withUrl(data.url, options)
-        .build();
-    connection.on('flightEvent', (...params) => this.flightsEvent(...params));
-    connection.on('carlintveldEvent', (...params) => this.carlintveldEvent(...params));
-    connection.on('durableEvent', (...params) => this.durableEvent(...params));
-    connection.on('FanoutEvent', (...params) => this.fanoutEvent(...params));
-    connection.onclose(() => {
-        // after a disconnect signalr backend drops the groups context for the connection. We need to readd user to signalr groups
-        console.log('disconnected');
-        setTimeout(() => { this.startConnection(connection); }, this.getNewWaitTime());
-    });
-    this.startConnection(connection);
-
+        };
+        const connection = new HubConnectionBuilder()
+            .withUrl(data.url, options)
+            .build();
+        connection.on('flightEvent', (...params) => this.flightsEvent(...params));
+        connection.on('carlintveldEvent', (...params) => this.carlintveldEvent(...params));
+        connection.on('durableEvent', (...params) => this.durableEvent(...params));
+        connection.on('FanoutEvent', (...params) => this.fanoutEvent(...params));
+        connection.onclose(() => {
+            // after a disconnect signalr backend drops the groups context for the connection. We need to readd user to signalr groups
+            console.log('disconnected');
+            setTimeout(() => { this.startConnection(connection); }, this.getNewWaitTime());
+        });
+        this.startConnection(connection);
     }
+
     durableEvent(...data): void {
         this.durable$.next(data);
     }
